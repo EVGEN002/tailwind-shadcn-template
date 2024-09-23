@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import './assets/global.css';
+import '@/assets/global.css';
 
-import App from './App';
+import AppViewer from '@/AppViewer';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <AppViewer />
   </React.StrictMode>
 );
