@@ -43,11 +43,15 @@ module.exports = (env) => {
       'process.env.API_BASENAME': JSON.stringify(process.env.API_BASENAME),
       'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
     }),
-    new BundleAnalyzerPlugin({
-      analyzerMode: 'static', // 📊 Генерирует HTML файл с отчетом
-      openAnalyzer: false, // 🌐 Открывает отчет автоматически в браузере
-      reportFilename: 'bundle_report.html' // 📄 Имя файла отчета
-    }),
+    ...(env.production || env.local
+      ? [
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static', // 📊 Генерирует HTML файл с отчетом
+            openAnalyzer: false, // 🌐 Открывает отчет автоматически в браузере
+            reportFilename: 'bundle_report.html' // 📄 Имя файла отчета
+          })
+        ]
+      : []),
     new CleanWebpackPlugin(),
     new Dotenv({
       path: path.resolve(__dirname, `.env.${mode}`)
