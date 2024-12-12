@@ -44,12 +44,12 @@ const App = ({ id, type }: AppProps) => {
           {type === 'view' && userRole !== 'admin' && id && (
             <Detail id={id} />
           )}
-          {type === 'view' && userRole === 'admin' && id && (
+          {type === 'view' && (userRole === 'admin' || userRole === 'operator')  && id && (
             <DetailAdmin id={id} />
           )}
-          {type === 'view' && userRole === 'operator' && id && (
+          {/* {type === 'view' && userRole === 'operator' && id && (
             <DetailAdmin id={id} />
-          )}
+          )} */}
           {type === 'create' && <Create />}
           {type === 'edit' && id && <Edit id={id} />}
         </>
