@@ -39,6 +39,7 @@ module.exports = (env) => {
       React: 'react'
     }),
     new DefinePlugin({
+      'process.env.MODE': JSON.stringify(mode),
       'process.env.API_URL': JSON.stringify(process.env.API_URL),
       'process.env.API_BASENAME': JSON.stringify(process.env.API_BASENAME),
       'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
@@ -57,11 +58,15 @@ module.exports = (env) => {
       path: path.resolve(__dirname, `.env.${mode}`)
     }),
     new ModuleFederationPlugin({
-      name: 'tailwindShadcn', // 📝 Введите название проекта
+      name: 'SpatialData', // 📝 Введите название проекта
       filename: 'remoteEntry.js',
-      remotes: {},
+      remotes: {
+        // MapProvider: "MapProvider@http://10.18.100.41:81/mf/map/remoteEntry.js"
+        MapProvider: 'MapProvider@https://yakit.pro/sakhagis/mf/map/remoteEntry.js'
+        // MapProvider: 'MapProvider@http://localhost:3000/remoteEntry.js'
+      },
       exposes: {
-        './Map': './src/app/App.tsx' // 🧩 Замение "App" - на название компонента, который вы хотите экспортировать
+        './SpatialDataComponent': './src/app/App.tsx' // 🧩 Замение "App" - на название компонента, который вы хотите экспортировать
       },
       shared: {
         ...deps,
@@ -77,7 +82,16 @@ module.exports = (env) => {
           requiredVersion: deps.axios,
           eager: env.production,
           singleton: env.production
-        }
+        },
+        '@radix-ui/react-dialog': { singleton: true, requiredVersion: '^1.1.2' },
+        '@radix-ui/react-dropdown-menu': { singleton: true, requiredVersion: '^2.1.2' },
+        '@radix-ui/react-popover': { singleton: true, requiredVersion: '^1.1.2' },
+        '@radix-ui/react-select': { singleton: true, requiredVersion: '^2.1.1' },
+        '@radix-ui/react-tabs': { singleton: true, requiredVersion: '^1.1.0' },
+        axios: { singleton: true, requiredVersion: '^1.6.8' },
+        classnames: { singleton: true, requiredVersion: '^2.5.1' },
+        clsx: { singleton: true, requiredVersion: '^2.1.1' },
+        'react-toastify': { singleton: true, requiredVersion: '^10.0.6' }
       }
     })
   ];
@@ -99,7 +113,7 @@ module.exports = (env) => {
     devServer: env.development
       ? {
           hot: true,
-          port: 3000,
+          port: 3002,
           historyApiFallback: true,
           client: {
             overlay: false

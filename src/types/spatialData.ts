@@ -1,0 +1,55 @@
+export interface AttachedFile {
+  attachedfileid: string | null;
+  name: string | null;
+  description: string | null;
+  path: string | null;
+  size: number | null;
+  userid: string | null;
+  uploadtime: string | null;
+  uploaderName: string | null;
+}
+
+export interface Material {
+  name: string | null;
+  mainGeoObjectName: string | null;
+  shortName: string | null;
+  barcode: number | null;
+  inventarNumber: string | null;
+  coordinateSystem: number | null;
+  projection: string | null;
+  formats: string[] | null;
+  materialCreatorId: number | null;
+  mapOwner: string | null;
+  storageSection: string | null;
+  scale: number | null;
+  yearCreate: number | null;
+  yearConformity: number | null;
+  secretStatus: number | null;
+  accessConditions: string | null;
+  location: string | null;
+  materialTypeId: number | null;
+  baseType: number | null;
+  status: number | null;
+  displayForm: number | null;
+  areaBySheetFrameSquareMeter: number | null;
+  baseUnitOfAccount: number | null;
+  numberOfUnits: number | null;
+  imageType: string | null;
+  resolution: string | null;
+  accuracy: string | null;
+  cloudiness: number | null;
+  lat: number | null;
+  lng: number | null;
+  geometryString: string | null;
+  geometry?: any;
+  wmsLayer: string | null;
+  accuracySpatialData: string | null;
+  inventarNumberOfPd: string | null;
+  copyNumber: string | null;
+  note: string | null;
+  numberOfSheets: number | null;
+  coordSystemId: number | null;
+  locationGuids: string | null;
+  editor: string | null;
+  serializedAdditionalFields: string | null;
+}

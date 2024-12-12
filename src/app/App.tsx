@@ -1,62 +1,61 @@
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { getCurrentUser } from '@/api';
+import Create from '@/views/Create';
+import Detail from '@/views/Detail';
+import DetailAdmin from '@/views/DetailAdmin';
+import Edit from '@/views/Edit';
+import { useEffect, useState } from 'react';
 
-const App = () => {
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+interface AppProps {
+  id?: string;
+  type: 'view' | 'view-admin' | 'create' | 'edit';
+}
+
+interface CurrentUser {
+  role: string;
+  name: string;
+}
+
+const App = ({ id, type }: AppProps) => {
+  type ??= 'view';
+
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = (await getCurrentUser()) as CurrentUser;
+  
+        setUserRole(data.role);
+      } catch {
+        throw new Error('getCurrentUser error');
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Create project</CardTitle>
-          <CardDescription>
-            Deploy your new project in one-click.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Name of your project" />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="framework">Framework</Label>
-                <Select>
-                  <SelectTrigger id="framework">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value="next">Next.js</SelectItem>
-                    <SelectItem value="sveltekit">SvelteKit</SelectItem>
-                    <SelectItem value="astro">Astro</SelectItem>
-                    <SelectItem value="nuxt">Nuxt.js</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancel</Button>
-          <Button>Deploy</Button>
-        </CardFooter>
-      </Card>
-    </div>
+    <>
+      {userRole && (
+        <>
+          {type === 'view' && userRole !== 'admin' && id && (
+            <Detail id={id} />
+          )}
+          {type === 'view' && userRole === 'admin' && id && (
+            <DetailAdmin id={id} />
+          )}
+          {type === 'view' && userRole === 'operator' && id && (
+            <DetailAdmin id={id} />
+          )}
+          {type === 'create' && <Create />}
+          {type === 'edit' && id && <Edit id={id} />}
+        </>
+      )}
+      <ToastContainer />
+    </>
   );
 };
 

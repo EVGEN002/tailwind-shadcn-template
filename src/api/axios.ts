@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import cookie from 'js-cookie';
 
 type ApiResponse<T> = T;
 
@@ -17,6 +18,9 @@ const axiosInstance: AxiosInstance = axios.create(axiosConfig);
 
 axiosInstance.interceptors.request.use(
   async (config) => {
+    const token = cookie.get('token') ?? API_KEY;
+    config.headers.Authorization = `Bearer ${token}`;
+
     return config;
   },
   (error) => {
@@ -60,7 +64,7 @@ const request = {
   },
   put: async <T, D>(url: string, data: D): Promise<ApiResponse<T>> => {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.post(url, data);
+      const response: AxiosResponse<T> = await axiosInstance.put(url, data);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

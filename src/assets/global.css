@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'GolosText';
+  src: url('@/assets/fonts/GolosText-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900; /* диапазон весов */
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -80,4 +88,37 @@
       'rlig' 1,
       'calt' 1;
   }
+}
+
+:root {
+  font-family: 'GolosText';
+  --interactive-text: hsl(213, 100%, 35%);
+}
+
+h1 {
+  font-size: 44px;
+  line-height: 60px;
+}
+
+h2 {
+  font-size: 30px;
+  line-height: 36px;
+}
+
+h3 {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+h4 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+a {
+  color: var(--interactive-text);
+}
+
+a:hover {
+  text-decoration: underline;
 }
