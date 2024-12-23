@@ -47,9 +47,6 @@ const App = ({ id, type }: AppProps) => {
           {type === 'view' && (userRole === 'admin' || userRole === 'operator')  && id && (
             <DetailAdmin id={id} />
           )}
-          {/* {type === 'view' && userRole === 'operator' && id && (
-            <DetailAdmin id={id} />
-          )} */}
           {type === 'create' && <Create />}
           {type === 'edit' && id && <Edit id={id} />}
         </>

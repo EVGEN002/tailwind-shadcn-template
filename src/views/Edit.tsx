@@ -194,15 +194,6 @@ export default function Edit({ id }: { id: string }) {
   const [locationDictionary, setLocationDictionary] =
     useState<LocationDictionary | null>(null);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     getSpatialData(id).then((res: any) => {
-  //       setMaterial(res)
-  //       setIsLoaded(true);
-  //     });
-  //   })();
-  // }, []);
-
   const [showSectionModal, setShowSectionModal] = useState(false);
 
   const [sectionData, setSectionData] = useState<{
@@ -440,8 +431,6 @@ export default function Edit({ id }: { id: string }) {
         if (data.geometry) {
           delete data.geometry;
         }
-
-        // data.geometryString = data.geometryString ? JSON.parse(data.geometryString) : null;
 
         await putSpatialData(id, data);
         toast.success('Материал успешно сохранен');
@@ -1078,7 +1067,7 @@ export default function Edit({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <div className="flex justify-between col-span-3 pb-[30px]">
+        <div className="col-span-3 flex justify-between pb-[30px]">
           <a href={backHref()}>
             <Button variant="outline">
               <ArrowLeft className="mr-2" size={16} />

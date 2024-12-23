@@ -599,13 +599,6 @@ export default function Detail({ id }: DetailProps) {
         </Card>
         <div></div>
       </div>
-
-      {/* <div className="mt-6 flex justify-between">
-        <Button variant="outline" onClick={backHref}>
-          <ArrowLeft className="mr-2" size={16} />
-          Назад к каталогу
-        </Button>
-      </div> */}
     </div>
   );
 }

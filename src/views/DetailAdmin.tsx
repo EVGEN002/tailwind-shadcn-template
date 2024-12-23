@@ -630,52 +630,6 @@ export default function DetailAdmin({ id }: { id: string }) {
                     value={material?.mapOwner}
                     onChange={(event) => set('projection', event.target.value)}
                   />
-                  {/* TODO: Секция хранения */}
-                  {/* <BaseLabel label="Секция хранения">
-                <Dialog>
-                  <DialogTrigger>
-                    <Button
-                      className="flex h-10 w-full items-center justify-between px-3 py-2 font-normal text-muted-foreground"
-                      variant="outline"
-                    >
-                      Выбрать секцию хранения
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Секция хранения</DialogTitle>
-                    </DialogHeader>
-                    <DialogContent>
-                      <div>
-                        <Label>Стеллаж:</Label>
-                        <Select
-                          value={baseDictionary?.ListOfRackValues.find(item => material.storageSection)}
-                          onValueChange={(value) =>
-                            setMaterial((prev) => ({
-                              ...prev,
-                              storageSection: prev.storageSection ? prev.storageSection.split(',')[0].split(':')
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Выберите стеллаж" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(baseDictionary?.ListOfRackValues as any)?.value?.split(',').map(
-                              (item: any) => (
-                                <SelectItem value={item}>
-                                  {item}
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </DialogContent>
-                  </DialogContent>
-                </Dialog>
-              </BaseLabel> */}
                   <BaseItemNumber
                     readOnly={true}
                     label="Масштаб"
@@ -903,11 +857,6 @@ export default function DetailAdmin({ id }: { id: string }) {
                   ))}
                 </>
               )}
-              {/* TODO: Базовая расчетная единица */}
-              {/* <div>
-                <Label className='font-medium'>Прикрепленные файлы</Label>
-                <Input type='file' value={material.} onChange={(event) => set('')}></Input>
-              </div> */}
             </div>
           </CardContent>
         </Card>

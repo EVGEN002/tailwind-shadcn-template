@@ -140,11 +140,6 @@ export interface LocationDictionary {
   towns: TownLocation[];
 }
 
-// export interface LocationServerObject {
-//   locationGuids: string;
-//   location: string;
-// }
-
 export default function Create() {
   const [material, setMaterial] = useState<Material>(defaultMaterial);
   const [baseDictionary, setBaseDictionary] = useState<{
@@ -523,60 +518,8 @@ export default function Create() {
     })();
   }, [selectedDistricts, selectedNaslegs, selectedTowns]);
 
-  // const sendFile = async () => {
-  //   const files = fileList;
-
-  //   if (!files) return;
-
-  //   const formData = new FormData();
-
-  //   // Append each file to FormData
-  //   for (let i = 0; i < files.length; i++) {
-  //     formData.append('tip', 'file');
-  //     formData.append('obj', 'material');
-  //     formData.append('obj_code', id);
-  //     formData.append('obj_field', 'sakhagis_field');
-  //     formData.append('title', 'Документ заявления');
-  //     formData.append('files', files[i]);
-  //   }
-
-  //   try {
-  //     const repoResponse = await uploadRepoFile(formData);
-
-  //     const fileCodes = repoResponse.map((item) => JSON.stringify(item));
-
-  //     let existedFiles;
-
-  //     if (
-  //       updatedData.additionalFilesList &&
-  //       updatedData.additionalFilesList.length > 0
-  //     ) {
-  //       existedFiles = updatedData.additionalFilesList;
-  //     }
-
-  //     if (existedFiles) {
-  //       updatedData.additionalFilesList = [...existedFiles, ...fileCodes];
-  //     } else {
-  //       updatedData.additionalFilesList = fileCodes;
-  //     }
-
-  //     await putStatement(String(id), updatedData);
-
-  //     toast.success('Файл успешно загружен');
-  //     getData();
-  //     setShowAddFileModal(false);
-  //   } catch {
-  //     toast.error('Ошибка при загрузке файла');
-  //   }
-  // }
-
   return (
     <div className="h-full overflow-auto px-[30px]">
-      {/* <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Фонд пространственных данных Республики Саха (Якутия)
-        </h1>
-      </div> */}
       <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
         <Card className="flex flex-col lg:col-span-1">
           <CardHeader>
@@ -1071,10 +1014,6 @@ export default function Create() {
                   ))}
                 </>
               )}
-              {/* <div>
-                <Label className='font-medium'>Прикрепленные файлы</Label>
-                <Input type='file' value={material.} onChange={(event) => set('')}></Input>
-              </div> */}
             </div>
           </CardContent>
         </Card>
@@ -1084,20 +1023,6 @@ export default function Create() {
             <CardTitle>
               <span>Контур пространственных данных</span>
             </CardTitle>
-            {/* <Button
-              onClick={addData}
-              className={cn({ 'opacity-50': validation })}
-              disabled={!isLoaded || sending}
-            >
-              {sending ? (
-                <>
-                  Сохранение{' '}
-                  <LoaderCircle className="ml-2 animate-spin duration-500" />
-                </>
-              ) : (
-                'Сохранить'
-              )}
-            </Button> */}
           </CardHeader>
           <CardContent>
             <div className="z-0 aspect-video overflow-hidden rounded-lg bg-gray-200">
@@ -1108,12 +1033,6 @@ export default function Create() {
             </div>
           </CardContent>
         </Card>
-        {/* {Object.entries(material).map((item) => (
-          <pre className="text-wrap">
-            {item[0]}:{JSON.stringify(item[1])}
-          </pre>
-        ))} */}
-
         {false && (
           <Card className="lg:col-span-3">
             <CardHeader>
@@ -1147,21 +1066,6 @@ export default function Create() {
             </CardContent>
           </Card>
         )}
-
-        {/* <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Файлы пространственных данных</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data?.storageFilesList && data?.storageFilesList.length > 0 ? (
-              <></>
-            ) : (
-              <div className="py-8 text-center text-gray-500">
-                Нет доступных файлов
-              </div>
-            )}
-          </CardContent>
-        </Card> */}
       </div>
 
       <Card className="mb-[30px] mt-6">
@@ -1464,13 +1368,7 @@ export default function Create() {
           </div>
           <div className="mt-3 flex justify-between">
             <Button variant="outline">Отмена</Button>
-            <Button
-              onClick={() => {
-                // sendFile
-              }}
-            >
-              Подтвердить
-            </Button>
+            <Button onClick={() => {}}>Подтвердить</Button>
           </div>
         </DialogContent>
       </Dialog>

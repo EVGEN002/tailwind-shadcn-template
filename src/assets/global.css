@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'GolosText';
   src: url('@/assets/fonts/GolosText-VariableFont_wght.ttf') format('truetype');
-  font-weight: 100 900; /* диапазон весов */
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
