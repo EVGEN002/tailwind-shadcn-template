@@ -50,9 +50,9 @@ const request = {
       }
     }
   },
-  post: async <T, D>(url: string, data: D): Promise<ApiResponse<T>> => {
+  post: async <T, D>(url: string, data: D, params?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.post(url, data);
+      const response: AxiosResponse<T> = await axiosInstance.post(url, data, params);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

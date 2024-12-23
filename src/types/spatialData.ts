@@ -9,6 +9,38 @@ export interface AttachedFile {
   uploaderName: string | null;
 }
 
+export interface StoragedFile {
+  storagedfileid: string | null;
+  name: string | null;
+  description: string | null;
+  path: string | null;
+  size: number | null;
+  userid: string | null;
+  uploadtime: string | null;
+  uploaderName: string | null;
+}
+
+export interface RepoFile {
+  "code": string,
+  "obj": string,
+  "obj_code": string,
+  "obj_field": string,
+  "title": string,
+  "name": string,
+  "ext": string,
+  "size": number,
+  "ord": number,
+  "tip": string,
+  "parent_code": null,
+  "login_created": string,
+  "date_created": Date,
+  "is_deleted": boolean,
+  "date_deleted": Date,
+  "login_deleted": string,
+  "user_id_created": number,
+  "user_id_deleted": number
+}
+
 export interface Material {
   name: string | null;
   mainGeoObjectName: string | null;
@@ -52,4 +84,10 @@ export interface Material {
   locationGuids: string | null;
   editor: string | null;
   serializedAdditionalFields: string | null;
+  attachedFilesList?: AttachedFile[];
+  storageFilesList?: StoragedFile[];
+  repoFiles?: {
+    repoAttachedFiles: RepoFile[],
+    repoStorageFiles: RepoFile[]
+  }
 }

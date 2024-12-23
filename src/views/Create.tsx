@@ -9,7 +9,8 @@ import {
   Layers,
   MapPinPlus,
   ChevronDown,
-  LoaderCircle
+  LoaderCircle,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -57,6 +59,8 @@ import {
 import { watch } from 'fs';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const defaultMaterial: Material = {
   name: '',
@@ -102,6 +106,45 @@ const defaultMaterial: Material = {
   serializedAdditionalFields: ''
 };
 
+interface SectionDictionary {
+  cellValues: string[];
+  rackValues: string[];
+  sectionValues: string[];
+  shelfValues: string[];
+}
+
+export interface DistrictLocation {
+  guid: string;
+  id: number;
+  name: string;
+  fullName: string;
+}
+
+export interface NaslegLocation {
+  districtID: number;
+  guid: string;
+  id: number;
+  name: string;
+}
+
+export interface TownLocation {
+  guid: string;
+  id: number;
+  name: string;
+  naslegID: number;
+}
+
+export interface LocationDictionary {
+  districts: DistrictLocation[];
+  naslegs: NaslegLocation[];
+  towns: TownLocation[];
+}
+
+// export interface LocationServerObject {
+//   locationGuids: string;
+//   location: string;
+// }
+
 export default function Create() {
   const [material, setMaterial] = useState<Material>(defaultMaterial);
   const [baseDictionary, setBaseDictionary] = useState<{
@@ -111,6 +154,27 @@ export default function Create() {
   const [isSubmit, setIsSubmit] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [sending, setSending] = useState(false);
+
+  const [locationDictionary, setLocationDictionary] =
+    useState<LocationDictionary | null>(null);
+
+  const [showSectionModal, setShowSectionModal] = useState(false);
+
+  const [sectionDictionary, setSectionDictionary] =
+    useState<SectionDictionary | null>(null);
+
+  const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
+
+  const [selectedDistricts, setSelectedDistricts] = useState<
+    DistrictLocation[]
+  >([]);
+  const [selectedNaslegs, setSelectedNaslegs] = useState<NaslegLocation[]>([]);
+  const [selectedTowns, setSelectedTowns] = useState<TownLocation[]>([]);
+
+  const [showAddFileModal, setShowAddFileModal] = useState(false);
+
+  const [fileList, setFileList] = useState<FileList | null>(null);
+  const [imageList, setImageList] = useState<FileList | null>(null);
 
   const handleSetBaseDictionary = <T,>(
     promiseResult: PromiseSettledResult<T>,
@@ -160,6 +224,7 @@ export default function Create() {
         getDictionaryFundsettings('ListOfShelfValues');
       const p_ListOfCellValues = getDictionaryFundsettings('ListOfCellValues');
       const p_materialbaseunits = getDictionary('materialbaseunits');
+      const p_materialshelfs = getDictionary('materialshelfs');
 
       const [
         r_secrectStatusTypes,
@@ -185,7 +250,8 @@ export default function Create() {
         r_ListOfSectionValues,
         r_ListOfShelfValues,
         r_ListOfCellValues,
-        r_materialbaseunits
+        r_materialbaseunits,
+        r_materialshelfs
       ] = await Promise.allSettled([
         p_secretStatusTypes,
         p_materialOrderTypes,
@@ -210,7 +276,8 @@ export default function Create() {
         p_ListOfSectionValues,
         p_ListOfShelfValues,
         p_ListOfCellValues,
-        p_materialbaseunits
+        p_materialbaseunits,
+        p_materialshelfs
       ]);
 
       handleSetBaseDictionary<any>(
@@ -313,6 +380,21 @@ export default function Create() {
         'materialbaseunits',
         setBaseDictionary
       );
+      handleSetBaseDictionary<any>(
+        r_materialshelfs,
+        'materialshelfs',
+        setBaseDictionary
+      );
+      if (r_materialshelfs.status === 'fulfilled') {
+        const data = r_materialshelfs.value;
+
+        setSectionDictionary(data);
+      }
+      if (r_location.status === 'fulfilled') {
+        const data = r_location.value;
+
+        setLocationDictionary(data);
+      }
       setIsLoaded(true);
     };
 
@@ -359,7 +441,7 @@ export default function Create() {
     } else if (MODE === 'local') {
       href = '/sakhagis/admin/fpd';
     } else if (MODE === 'development') {
-      href = '/sakhagis/admin/fpd';
+      href = 'https://yakit.pro/sakhagis/admin/fpd';
     } else {
       href = '';
     }
@@ -409,6 +491,85 @@ export default function Create() {
     setValidation(!isValid);
   }, [material]);
 
+  const [sectionData, setSectionData] = useState<{
+    cellValue: string;
+    rackValue: string;
+    sectionValue: string;
+    shelfValue: string;
+  }>({ cellValue: '', rackValue: '', sectionValue: '', shelfValue: '' });
+
+  useEffect(() => {
+    setMaterial((prev) => ({
+      ...prev,
+      storageSection: `${sectionData.shelfValue}${sectionData.sectionValue ? `,${sectionData.sectionValue}` : ''}${sectionData.rackValue ? `,${sectionData.rackValue}` : ''}${sectionData.cellValue ? `,${sectionData.cellValue}` : ''}`
+    }));
+  }, [sectionData]);
+
+  useEffect(() => {
+    (() => {
+      setMaterial((prev) => ({
+        ...prev,
+        locationGuids: [
+          ...selectedDistricts.map((d) => d.guid),
+          ...selectedNaslegs.map((n) => n.guid),
+          ...selectedTowns.map((t) => t.guid)
+        ].join(','),
+        location: [
+          ...selectedDistricts.map((d) => d.fullName),
+          ...selectedNaslegs.map((n) => n.name),
+          ...selectedTowns.map((t) => t.name)
+        ].join(',')
+      }));
+    })();
+  }, [selectedDistricts, selectedNaslegs, selectedTowns]);
+
+  // const sendFile = async () => {
+  //   const files = fileList;
+
+  //   if (!files) return;
+
+  //   const formData = new FormData();
+
+  //   // Append each file to FormData
+  //   for (let i = 0; i < files.length; i++) {
+  //     formData.append('tip', 'file');
+  //     formData.append('obj', 'material');
+  //     formData.append('obj_code', id);
+  //     formData.append('obj_field', 'sakhagis_field');
+  //     formData.append('title', 'Документ заявления');
+  //     formData.append('files', files[i]);
+  //   }
+
+  //   try {
+  //     const repoResponse = await uploadRepoFile(formData);
+
+  //     const fileCodes = repoResponse.map((item) => JSON.stringify(item));
+
+  //     let existedFiles;
+
+  //     if (
+  //       updatedData.additionalFilesList &&
+  //       updatedData.additionalFilesList.length > 0
+  //     ) {
+  //       existedFiles = updatedData.additionalFilesList;
+  //     }
+
+  //     if (existedFiles) {
+  //       updatedData.additionalFilesList = [...existedFiles, ...fileCodes];
+  //     } else {
+  //       updatedData.additionalFilesList = fileCodes;
+  //     }
+
+  //     await putStatement(String(id), updatedData);
+
+  //     toast.success('Файл успешно загружен');
+  //     getData();
+  //     setShowAddFileModal(false);
+  //   } catch {
+  //     toast.error('Ошибка при загрузке файла');
+  //   }
+  // }
+
   return (
     <div className="h-full overflow-auto px-[30px]">
       {/* <div className="mb-6 flex items-center justify-between">
@@ -416,7 +577,7 @@ export default function Create() {
           Фонд пространственных данных Республики Саха (Якутия)
         </h1>
       </div> */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 h-full py-[30px]">
+      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
         <Card className="flex flex-col lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -528,7 +689,7 @@ export default function Create() {
                     onChange={(event) => set('projection', event.target.value)}
                   />
                   <TextareaItem
-                    label="Конур простр. данных в формате GeoJSON"
+                    label="Контур простр. данных в формате GeoJSON"
                     placeholder="Вставьте контур простр. данных в формате GeoJSON"
                     value={material?.geometryString ?? undefined}
                     onChange={(event) =>
@@ -616,54 +777,24 @@ export default function Create() {
                   <BaseItem
                     label="Правообладатель"
                     value={material?.mapOwner}
-                    onChange={(event) => set('projection', event.target.value)}
+                    onChange={(event) => set('mapOwner', event.target.value)}
                   />
                   {/* TODO: Секция хранения */}
-                  {/* <BaseLabel label="Секция хранения">
-                <Dialog>
-                  <DialogTrigger>
+                  <BaseLabel label="Секция хранения">
+                    <Input
+                      disabled
+                      placeholder="Выберите секцию хранения"
+                      value={`${sectionData.shelfValue}${sectionData.sectionValue ? `,${sectionData.sectionValue}` : ''}${sectionData.rackValue ? `,${sectionData.rackValue}` : ''}${sectionData.cellValue ? `,${sectionData.cellValue}` : ''}`}
+                    />
                     <Button
-                      className="flex h-10 w-full items-center justify-between px-3 py-2 font-normal text-muted-foreground"
-                      variant="outline"
+                      className="h-auto p-0 text-blue-500"
+                      variant="link"
+                      size="sm"
+                      onClick={() => setShowSectionModal(true)}
                     >
                       Выбрать секцию хранения
-                      <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Секция хранения</DialogTitle>
-                    </DialogHeader>
-                    <DialogContent>
-                      <div>
-                        <Label>Стеллаж:</Label>
-                        <Select
-                          value={baseDictionary?.ListOfRackValues.find(item => material.storageSection)}
-                          onValueChange={(value) =>
-                            setMaterial((prev) => ({
-                              ...prev,
-                              storageSection: prev.storageSection ? prev.storageSection.split(',')[0].split(':')
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Выберите стеллаж" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(baseDictionary?.ListOfRackValues as any)?.value?.split(',').map(
-                              (item: any) => (
-                                <SelectItem value={item}>
-                                  {item}
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </DialogContent>
-                  </DialogContent>
-                </Dialog>
-              </BaseLabel> */}
+                  </BaseLabel>
                   <BaseItemNumber
                     label="Масштаб"
                     value={material?.scale}
@@ -725,6 +856,33 @@ export default function Create() {
                       set('accessConditions', event.target.value)
                     }
                   />
+                  <BaseLabel label="Местоположение">
+                    <Input
+                      placeholder="Выберите местоположение"
+                      value={`${
+                        selectedDistricts || selectedNaslegs || selectedTowns
+                          ? `${selectedDistricts
+                              .map((district) => district.name)
+                              .join(
+                                ','
+                              )}${selectedNaslegs.length > 0 ? `,${selectedNaslegs.map((nasleg) => nasleg.name).join(',')}` : ''}${selectedTowns.length > 0 ? `,${selectedTowns.map((town) => town.name).join(',')}` : ''}`
+                          : ''
+                      }`}
+                      onChange={(e) => {
+                        console.log(e.target.value);
+                        debugger;
+                      }}
+                      disabled
+                    />
+                    <Button
+                      className="h-auto p-0 text-blue-500"
+                      variant="link"
+                      size="sm"
+                      onClick={() => setShowLocationModal(true)}
+                    >
+                      Выбрать
+                    </Button>
+                  </BaseLabel>
                   {/* TODO: Местонахождение территории */}
                   <BaseLabel label="Базовый тип*">
                     <Select
@@ -922,13 +1080,27 @@ export default function Create() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>
               <span>Контур пространственных данных</span>
             </CardTitle>
+            {/* <Button
+              onClick={addData}
+              className={cn({ 'opacity-50': validation })}
+              disabled={!isLoaded || sending}
+            >
+              {sending ? (
+                <>
+                  Сохранение{' '}
+                  <LoaderCircle className="ml-2 animate-spin duration-500" />
+                </>
+              ) : (
+                'Сохранить'
+              )}
+            </Button> */}
           </CardHeader>
           <CardContent>
-            <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
+            <div className="z-0 aspect-video overflow-hidden rounded-lg bg-gray-200">
               <Map
                 type="spatial-data"
                 geometry={material?.geometryString ?? ''}
@@ -992,7 +1164,7 @@ export default function Create() {
         </Card> */}
       </div>
 
-      <Card className="mt-6 pb-[30px]">
+      <Card className="mb-[30px] mt-6">
         <CardContent className="flex justify-between pt-6">
           <a href={backHref()}>
             <Button variant="outline">
@@ -1006,16 +1178,302 @@ export default function Create() {
             disabled={!isLoaded || sending}
           >
             {sending ? (
-            <>
-              Создание{' '}
-              <LoaderCircle className="ml-2 animate-spin duration-500" />
-            </>
-          ) : (
-            'Создать материал'
-          )}
+              <>
+                Создание{' '}
+                <LoaderCircle className="ml-2 animate-spin duration-500" />
+              </>
+            ) : (
+              'Создать материал'
+            )}
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={showSectionModal} onOpenChange={setShowSectionModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Секция хранения</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label>Стеллаж:</Label>
+            <Select
+              value={sectionData.shelfValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  shelfValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите стеллаж" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.shelfValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Секция:</Label>
+            <Select
+              value={sectionData.sectionValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  sectionValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите стеллаж" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.sectionValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Полка:</Label>
+            <Select
+              value={sectionData.rackValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  rackValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите стеллаж" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.rackValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Ячейка:</Label>
+            <Select
+              value={sectionData.cellValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  cellValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите стеллаж" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.cellValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+        <DialogContent
+          defaultClose={false}
+          className="z-[1000] sm:max-w-[1000px]"
+        >
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="max-w-[80%]">
+              Выбор местоположения
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button size="icon" variant="ghost">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <div className="grid grid-cols-3 gap-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Районы</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-2">
+                    {locationDictionary &&
+                      locationDictionary.districts.map((district) => (
+                        <div className="flex items-start space-x-2">
+                          <Checkbox
+                            checked={selectedDistricts.some(
+                              (sDistrict) => sDistrict.name === district.name
+                            )}
+                            onCheckedChange={() => {
+                              setSelectedNaslegs([]);
+                              setSelectedTowns([]);
+
+                              selectedDistricts.some(
+                                (sDistrict) => sDistrict.name === district.name
+                              )
+                                ? setSelectedDistricts((prev) =>
+                                    prev.filter(
+                                      (item) => item.name !== district.name
+                                    )
+                                  )
+                                : setSelectedDistricts((prev) => [
+                                    ...prev,
+                                    district
+                                  ]);
+                            }}
+                          />
+                          <Label>{district.fullName}</Label>
+                        </div>
+                      ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Наслеги</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-2">
+                    {locationDictionary &&
+                      locationDictionary.naslegs
+                        .filter((nasleg) =>
+                          selectedDistricts.some(
+                            (sDistrict) => sDistrict.id === nasleg.districtID
+                          )
+                        )
+                        .map((nasleg) => (
+                          <div className="flex items-start space-x-2">
+                            <Checkbox
+                              checked={selectedNaslegs.some(
+                                (sNasleg) => sNasleg.name === nasleg.name
+                              )}
+                              onCheckedChange={() => {
+                                setSelectedTowns([]);
+
+                                selectedNaslegs.some(
+                                  (sNasleg) => sNasleg.name === nasleg.name
+                                )
+                                  ? setSelectedNaslegs((prev) =>
+                                      prev.filter(
+                                        (item) => item.name !== nasleg.name
+                                      )
+                                    )
+                                  : setSelectedNaslegs((prev) => [
+                                      ...prev,
+                                      nasleg
+                                    ]);
+                              }}
+                            />
+                            <Label>{nasleg.name}</Label>
+                          </div>
+                        ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Населенные пункты</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-2">
+                    {locationDictionary &&
+                      locationDictionary.towns
+                        .filter((town) =>
+                          selectedNaslegs.some(
+                            (sNasleg) => sNasleg.id === town.naslegID
+                          )
+                        )
+                        .map((town) => (
+                          <div className="flex items-start space-x-2">
+                            <Checkbox
+                              checked={selectedTowns.some(
+                                (sTown) => sTown.name === town.name
+                              )}
+                              onCheckedChange={() =>
+                                selectedTowns.some(
+                                  (sTown) => sTown.name === town.name
+                                )
+                                  ? setSelectedTowns((prev) =>
+                                      prev.filter(
+                                        (item) => item.name !== town.name
+                                      )
+                                    )
+                                  : setSelectedTowns((prev) => [...prev, town])
+                              }
+                            />
+                            <Label>{town.name}</Label>
+                          </div>
+                        ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="mt-3 flex justify-between">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowLocationModal(false);
+                setSelectedDistricts([]);
+                setSelectedNaslegs([]);
+                setSelectedTowns([]);
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={() => {
+                setShowLocationModal(false);
+              }}
+            >
+              Подтвердить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddFileModal} onOpenChange={setShowAddFileModal}>
+        <DialogContent defaultClose={false} className="sm:max-w-[700px]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="max-w-[80%]">
+              Загрузить дополнительные документы
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button size="icon" variant="ghost">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <div>
+            <Input
+              className="w-full"
+              type="file"
+              onChange={(event) => setFileList(event.target.files)}
+            />
+          </div>
+          <div className="mt-3 flex justify-between">
+            <Button variant="outline">Отмена</Button>
+            <Button
+              onClick={() => {
+                // sendFile
+              }}
+            >
+              Подтвердить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

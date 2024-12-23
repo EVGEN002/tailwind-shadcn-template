@@ -15,7 +15,7 @@ import {
   postToCart
 } from '@/api';
 
-import { Material } from '@/types/spatialData';
+import { Material, RepoFile } from '@/types/spatialData';
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
 
@@ -260,6 +260,62 @@ export default function Detail({ id }: DetailProps) {
     fetchData();
   }, []);
 
+  const returnRepoSrc = (code: string | null, ext: string | null) => {
+    const MODE = process.env.MODE;
+    let src: string;
+
+    if (MODE === 'production') {
+      src = `/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/apimap/repo/${code}${ext}`;
+    } else {
+      src = '';
+    }
+
+    return src;
+  };
+
+  const returnFileSrcFromPath = (path: string | null, ext: string | null) => {
+    if (!path) return;
+    const MODE = process.env.MODE;
+    let src: string;
+    const normalizedPath = path.replace(/\\/g, '/');
+
+    if (MODE === 'production') {
+      src = `/storage/${normalizedPath}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/storage/${normalizedPath}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/storage/${normalizedPath}`;
+    } else {
+      src = '';
+    }
+
+    return src;
+  };
+
+  const renderDoc = (file: RepoFile) => {
+    const MODE = process.env.MODE;
+    let link: string;
+
+    if (MODE === 'production') {
+      link = `/apimap/repo/${file.code}`;
+    } else if (MODE === 'local') {
+      link = `/sakhagis/apimap/repo/${file.code}`;
+    } else if (MODE === 'development') {
+      link = `https://yakit.pro/sakhagis/apimap/repo/${file.code}`;
+    } else {
+      link = '';
+    }
+
+    const name = file?.name ?? '';
+    const ext = file?.ext ?? '';
+
+    return <a href={link}>{name + ext}</a>;
+  };
+
   const backHref = () => {
     const MODE = process.env.MODE;
     let href: string;
@@ -269,7 +325,7 @@ export default function Detail({ id }: DetailProps) {
     } else if (MODE === 'local') {
       href = '/sakhagis/material/';
     } else if (MODE === 'development') {
-      href = '/sakhagis/material/';
+      href = 'https://yakit.pro/sakhagis/material/';
     } else {
       href = '';
     }
@@ -310,7 +366,7 @@ export default function Detail({ id }: DetailProps) {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
+      <div className="mb-[30px] grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -441,94 +497,108 @@ export default function Detail({ id }: DetailProps) {
           <CardContent>
             <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
               {data?.geometry && (
-                <Map type="spatial-data" geometry={data?.geometry} />
+                <Map type="spatial-data" geometry={data?.geometryString} />
               )}
             </div>
           </CardContent>
         </Card>
 
-        {false && (
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>
-                Изображения предпросмотра пространственных данных
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 1"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 2"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 3"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 4"
-                  className="h-auto w-full rounded-lg"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* <Card className="lg:col-span-3">
+        <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Файлы пространственных данных</CardTitle>
+            <CardTitle>
+              Изображения предпросмотра пространственных данных
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {data?.storageFilesList && data?.storageFilesList.length > 0 ? (
-              <></>
+            {data?.repoFiles?.repoAttachedFiles &&
+            data?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {data?.repoFiles.repoAttachedFiles.map((file) => (
+                  <img
+                    src={`${returnRepoSrc(file?.code, 'jpg')}`}
+                    alt="Preview 1"
+                    className="h-auto w-[400px] rounded-lg"
+                    width={400}
+                  />
+                ))}
+              </div>
+            ) : data?.attachedFilesList &&
+              data?.attachedFilesList?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {data?.attachedFilesList.map((file) => (
+                  <img
+                    src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
+                    alt="Preview 1"
+                    className="h-auto w-[400px] rounded-lg"
+                    width={400}
+                  />
+                ))}
+              </div>
             ) : (
               <div className="py-8 text-center text-gray-500">
                 Нет доступных файлов
               </div>
             )}
           </CardContent>
-        </Card> */}
-      </div>
+        </Card>
 
-      <Card className="mb-[30px] mt-6">
-        <CardContent className="flex justify-between pt-6">
-          <a onClick={() => history.back()}>
-            <Button variant="outline">
-              <ArrowLeft className="mr-2" size={16} />
-              Назад к каталогу
-            </Button>
-          </a>
-          <div className="flex space-x-4">
-            <a href={cartHref()} className="cursor-pointer">
-              <Button className="relative" variant="outline">
-                В заявлении
-                {cartCount && (
-                  <Badge className="absolute -right-2 -top-2">
-                    {cartCount}
-                  </Badge>
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Файлы пространственных данных</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data?.repoFiles?.repoStorageFiles &&
+            data?.repoFiles.repoStorageFiles.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {data?.repoFiles.repoStorageFiles.map((file) =>
+                  renderDoc(file)
                 )}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-gray-500">
+                Нет доступных файлов
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-3">
+          <CardContent className="flex justify-between pt-6">
+            <a onClick={() => history.back()}>
+              <Button variant="outline">
+                <ArrowLeft className="mr-2" size={16} />
+                Назад к каталогу
               </Button>
             </a>
-            <Button onClick={addToCart} disabled={!isLoaded || adding}>
-              {adding ? (
-                <>
-                  Добавление{' '}
-                  <LoaderCircle className="h-4 w-4 animate-spin duration-500" />
-                </>
-              ) : (
-                'Добавить в заявление'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex space-x-4">
+              <a href={cartHref()} className="cursor-pointer">
+                <Button className="relative" variant="outline">
+                  В заявлении
+                  {!!cartCount && (
+                    <Badge className="absolute -right-2 -top-2">
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </a>
+              <Button
+                className="flex gap-2"
+                onClick={addToCart}
+                disabled={!isLoaded || adding}
+              >
+                {adding ? (
+                  <>
+                    Добавление{' '}
+                    <LoaderCircle className="h-4 w-4 animate-spin duration-500" />
+                  </>
+                ) : (
+                  'Добавить в заявление'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <div></div>
+      </div>
 
       {/* <div className="mt-6 flex justify-between">
         <Button variant="outline" onClick={backHref}>

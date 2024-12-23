@@ -28,7 +28,7 @@ import {
   putSpatialData
 } from '@/api';
 
-import { Material } from '@/types/spatialData';
+import { Material, RepoFile, StoragedFile } from '@/types/spatialData';
 import BaseItem from '@/components/BaseItem';
 import TextareaItem from '@/components/TextareaItem';
 import BaseItemNumber from '@/components/BaseItemNumber';
@@ -349,7 +349,7 @@ export default function DetailAdmin({ id }: { id: string }) {
     } else if (MODE === 'local') {
       href = '/sakhagis/admin/fpd';
     } else if (MODE === 'development') {
-      href = '/sakhagis/admin/fpd';
+      href = 'https://yakit.pro/sakhagis/admin/fpd';
     } else {
       href = '';
     }
@@ -368,7 +368,7 @@ export default function DetailAdmin({ id }: { id: string }) {
     } else if (MODE === 'local') {
       href = `/sakhagis/material-edit/${id}`;
     } else if (MODE === 'development') {
-      href = `/sakhagis/material-edit/${id}`;
+      href = `https://yakit.pro/sakhagis/material-edit/${id}`;
     } else {
       href = '';
     }
@@ -376,9 +376,84 @@ export default function DetailAdmin({ id }: { id: string }) {
     return href;
   };
 
+  const returnRepoSrc = (code: string | null, ext: string | null) => {
+    const MODE = process.env.MODE;
+    let src: string;
+
+    if (MODE === 'production') {
+      src = `/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/apimap/repo/${code}${ext}`;
+    } else {
+      src = '';
+    }
+
+    return src;
+  };
+
+  const returnFileSrcFromPath = (path: string | null, ext: string | null) => {
+    if (!path) return;
+    const MODE = process.env.MODE;
+    let src: string;
+    const normalizedPath = path.replace(/\\/g, '/');
+
+    if (MODE === 'production') {
+      src = `/storage/${normalizedPath}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/storage/${normalizedPath}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/storage/${normalizedPath}`;
+    } else {
+      src = '';
+    }
+
+    return src;
+  };
+
+  const renderDoc = (file: RepoFile) => {
+    const MODE = process.env.MODE;
+    let link: string;
+
+    if (MODE === 'production') {
+      link = `/apimap/repo/${file.code}`;
+    } else if (MODE === 'local') {
+      link = `/sakhagis/apimap/repo/${file.code}`;
+    } else if (MODE === 'development') {
+      link = `https://yakit.pro/sakhagis/apimap/repo/${file.code}`;
+    } else {
+      link = '';
+    }
+
+    const name = file?.name ?? '';
+    const ext = file?.ext ?? '';
+
+    return <a href={link}>{name + ext}</a>;
+  };
+
+  const renderDocFromPath = (path: string | null, description: string) => {
+    if (!path) return;
+    const MODE = process.env.MODE;
+    let src: string;
+    const normalizedPath = path.replace(/\\/g, '/');
+
+    if (MODE === 'production') {
+      src = `/storage/${normalizedPath}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/storage/${normalizedPath}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/storage/${normalizedPath}`;
+    } else {
+      src = '';
+    }
+
+    return <a href={src}>{description}</a>;
+  };
+
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
+      <div className="grid h-full grid-cols-1 gap-6 py-6 lg:grid-cols-3">
         <Card className="flex flex-col lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -845,71 +920,90 @@ export default function DetailAdmin({ id }: { id: string }) {
           </CardHeader>
           <CardContent>
             <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
-              <Map type="spatial-data" geometry={material?.geometryString ?? ''} />
+              <Map
+                type="spatial-data"
+                geometry={material?.geometryString ?? ''}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {false && (
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>
-                Изображения предпросмотра пространственных данных
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 1"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 2"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 3"
-                  className="h-auto w-full rounded-lg"
-                />
-                <img
-                  src="/placeholder.svg?height=150&width=150"
-                  alt="Preview 4"
-                  className="h-auto w-full rounded-lg"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* <Card className="lg:col-span-3">
+        <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Файлы пространственных данных</CardTitle>
+            <CardTitle>
+              Изображения предпросмотра пространственных данных
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {data?.storageFilesList && data?.storageFilesList.length > 0 ? (
-              <></>
+            {material?.repoFiles?.repoAttachedFiles &&
+            material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {material?.repoFiles.repoAttachedFiles.map((file) => (
+                  <img
+                    src={`${returnRepoSrc(file?.code, 'jpg')}`}
+                    alt="Preview 1"
+                    className="h-auto w-[400px] rounded-lg"
+                    width={400}
+                  />
+                ))}
+              </div>
+            ) : material?.attachedFilesList &&
+              material?.attachedFilesList?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {material?.attachedFilesList.map((file) => (
+                  <img
+                    src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
+                    alt="Preview 1"
+                    className="h-auto w-[400px] rounded-lg"
+                    width={400}
+                  />
+                ))}
+              </div>
             ) : (
               <div className="py-8 text-center text-gray-500">
                 Нет доступных файлов
               </div>
             )}
           </CardContent>
-        </Card> */}
-      </div>
+        </Card>
 
-      <div className="mt-6 flex justify-between pb-[30px]">
-        <Button variant="outline" onClick={() => history.back()}>
-          <ArrowLeft className="mr-2" size={16} />
-          Назад к каталогу
-        </Button>
-        <a href={editHref()}>
-          <Button>
-            <PencilIcon className="mr-2" /> Редактировать
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Файлы пространственных данных</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {material?.repoFiles?.repoStorageFiles &&
+            material?.repoFiles.repoStorageFiles.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {material?.repoFiles.repoStorageFiles.map((file) =>
+                  renderDoc(file)
+                )}
+              </div>
+            ) : material?.storageFilesList &&
+              material?.storageFilesList?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {material?.storageFilesList.map((file: any) =>
+                  renderDocFromPath(file.path, file.description)
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-gray-500">
+                Нет доступных файлов
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <div className="flex justify-between pb-[30px] lg:col-span-3">
+          <Button variant="outline" onClick={() => history.back()}>
+            <ArrowLeft className="mr-2" size={16} />
+            Назад к каталогу
           </Button>
-        </a>
+          <a href={editHref()}>
+            <Button>
+              <PencilIcon className="mr-2" /> Редактировать
+            </Button>
+          </a>
+        </div>
       </div>
     </div>
   );
