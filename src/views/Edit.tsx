@@ -1,18 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  MapPin,
-  Download,
-  ArrowLeft,
-  Plus,
-  Minus,
-  Search,
-  Layers,
-  MapPinPlus,
-  Pencil,
-  ChevronDown,
-  LoaderCircle,
-  X
-} from 'lucide-react';
+import { ArrowLeft, Pencil, ChevronDown, LoaderCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -574,8 +561,8 @@ export default function Edit({ id }: { id: string }) {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
-        <Card className="flex flex-col lg:col-span-1">
+      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-4">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Pencil className="mr-2" size={20} />
@@ -583,12 +570,13 @@ export default function Edit({ id }: { id: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="relative flex-1 p-0">
-            <div className="absolute left-0 top-0 h-full w-full space-y-4 overflow-y-auto p-6 pt-0">
+            <div className="left-0 top-0 h-full w-full space-y-4 p-6 pt-0">
               {isLoaded && (
                 <>
-                  <BaseItem
+                  <TextareaItem
                     label="Наименование*"
-                    value={material?.name}
+                    placeholder="Введите наименование материала"
+                    value={material?.name ?? undefined}
                     onChange={(event) => set('name', event.target.value)}
                   />
                   <BaseItem
@@ -741,21 +729,22 @@ export default function Edit({ id }: { id: string }) {
                     value={material?.mapOwner}
                     onChange={(event) => set('projection', event.target.value)}
                   />
-                  {/* TODO: Секция хранения */}
                   <BaseLabel label="Секция хранения">
-                    <Input
-                      disabled
-                      placeholder="Выберите секцию хранения"
-                      value={material.storageSection ?? ''}
-                    />
-                    <Button
-                      className="h-auto p-0 text-blue-500"
-                      variant="link"
-                      size="sm"
-                      onClick={() => setShowSectionModal(true)}
-                    >
-                      Выбрать секцию хранения
-                    </Button>
+                    <div>
+                      <Input
+                        disabled
+                        placeholder="Выберите секцию хранения"
+                        value={material.storageSection ?? ''}
+                      />
+                      <Button
+                        className="h-auto p-0 text-blue-500"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setShowSectionModal(true)}
+                      >
+                        Выбрать секцию хранения
+                      </Button>
+                    </div>
                   </BaseLabel>
                   <BaseItemNumber
                     label="Масштаб"
@@ -806,23 +795,25 @@ export default function Edit({ id }: { id: string }) {
                     }
                   />
                   <BaseLabel label="Местоположение">
-                    <Input
-                      placeholder="Выберите местоположение"
-                      value={material.location ?? ''}
-                      onChange={(e) => {
-                        console.log(e.target.value);
-                        debugger;
-                      }}
-                      disabled
-                    />
-                    <Button
-                      className="h-auto p-0 text-blue-500"
-                      variant="link"
-                      size="sm"
-                      onClick={() => setShowLocationModal(true)}
-                    >
-                      Выбрать
-                    </Button>
+                    <div>
+                      <Input
+                        placeholder="Выберите местоположение"
+                        value={material.location ?? ''}
+                        onChange={(e) => {
+                          console.log(e.target.value);
+                          debugger;
+                        }}
+                        disabled
+                      />
+                      <Button
+                        className="h-auto p-0 text-blue-500"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setShowLocationModal(true)}
+                      >
+                        Выбрать
+                      </Button>
+                    </div>
                   </BaseLabel>
                   <BaseLabel label="Базовый тип*">
                     <Select
@@ -985,89 +976,89 @@ export default function Edit({ id }: { id: string }) {
                   ))}
                 </>
               )}
-              {/* TODO: Базовая расчетная единица */}
-              {/* <div>
-                <Label className='font-medium'>Прикрепленные файлы</Label>
-                <Input type='file' value={material.} onChange={(event) => set('')}></Input>
-              </div> */}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Контур пространственных данных</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
-              <Map type="spatial-data" geometry={data?.geometryString ?? ''} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-4 lg:col-span-2">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Контур пространственных данных</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[500px] overflow-hidden rounded-lg bg-gray-200">
+                <Map
+                  type="spatial-data"
+                  geometry={data?.geometryString ?? ''}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
-              Изображения предпросмотра пространственных данных
-            </CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowAddImageModal(true)}
-            >
-              Загрузить изображения
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {data?.repoFiles?.repoAttachedFiles &&
-            data?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {data?.repoFiles.repoAttachedFiles.map((file) => (
-                  <img
-                    src={`${returnRepoSrc(file?.code, 'jpg')}`}
-                    alt="Preview 1"
-                    className="h-auto w-[400px] rounded-lg"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-gray-500">
-                Нет доступных файлов
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>
+                Изображения предпросмотра пространственных данных
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddImageModal(true)}
+              >
+                Загрузить изображения
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {data?.repoFiles?.repoAttachedFiles &&
+              data?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {data?.repoFiles.repoAttachedFiles.map((file) => (
+                    <img
+                      src={`${returnRepoSrc(file?.code, 'jpg')}`}
+                      alt="Preview 1"
+                      className="h-auto w-[400px] rounded-lg"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Файлы пространственных данных</CardTitle>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowAddFileModal(true)}
-            >
-              Загрузить файлы
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {data?.repoFiles?.repoStorageFiles &&
-            data?.repoFiles.repoStorageFiles.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {data?.repoFiles.repoStorageFiles.map((file) =>
-                  renderDoc(file)
-                )}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-gray-500">
-                Нет доступных файлов
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Файлы пространственных данных</CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddFileModal(true)}
+              >
+                Загрузить файлы
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {data?.repoFiles?.repoStorageFiles &&
+              data?.repoFiles.repoStorageFiles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {data?.repoFiles.repoStorageFiles.map((file) =>
+                    renderDoc(file)
+                  )}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        <div className="col-span-3 flex justify-between pb-[30px]">
+        <div className="col-span-4 flex justify-between pb-[30px]">
           <a href={backHref()}>
             <Button variant="outline">
               <ArrowLeft className="mr-2" size={16} />

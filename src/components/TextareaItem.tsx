@@ -10,11 +10,24 @@ interface TextareaItemProps {
   readOnly?: boolean;
 }
 
-const TextareaItem = ({ label, placeholder, value, onChange, readOnly }: TextareaItemProps) => {
+const TextareaItem = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  readOnly
+}: TextareaItemProps) => {
   return (
-    <div className='space-y-1.5'>
-      <Label className="font-medium">{label}</Label>
-      <Textarea readOnly={readOnly} value={value} placeholder={placeholder} onChange={onChange}></Textarea>
+    // <div className='space-y-1.5'>
+    <div className="grid grid-cols-3 gap-2">
+      <Label className="col-span-1 font-medium">{label}</Label>
+      <Textarea
+        className="col-span-2"
+        readOnly={readOnly}
+        value={value}
+        placeholder={placeholder}
+        onChange={onChange}
+      ></Textarea>
     </div>
   );
 };

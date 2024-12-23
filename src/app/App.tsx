@@ -28,7 +28,8 @@ const App = ({ id, type }: AppProps) => {
       try {
         const data = (await getCurrentUser()) as CurrentUser;
   
-        setUserRole(data.role);
+        // setUserRole(data.role);
+        setUserRole("admin"); // TEST
       } catch {
         throw new Error('getCurrentUser error');
       }

@@ -359,8 +359,6 @@ export default function DetailAdmin({ id }: { id: string }) {
 
   const editHref = () => {
     const MODE = process.env.MODE;
-    console.log(MODE);
-    debugger;
     let href: string;
 
     if (MODE === 'production') {
@@ -453,15 +451,15 @@ export default function DetailAdmin({ id }: { id: string }) {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-6 lg:grid-cols-3">
-        <Card className="flex flex-col lg:col-span-1">
+      <div className="grid h-full grid-cols-1 gap-6 py-6 lg:grid-cols-4">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               {isLoaded ? material?.name : <Skeleton className="h-6 w-full" />}
             </CardTitle>
           </CardHeader>
           <CardContent className="relative flex-1 p-0">
-            <div className="absolute left-0 top-0 h-full w-full space-y-4 overflow-y-auto p-6 pt-0">
+            <div className="left-0 top-0 h-full w-full space-y-4 p-6 pt-0">
               {isLoaded && (
                 <>
                   <BaseItem
@@ -630,6 +628,14 @@ export default function DetailAdmin({ id }: { id: string }) {
                     value={material?.mapOwner}
                     onChange={(event) => set('projection', event.target.value)}
                   />
+                  <BaseItem
+                    readOnly={true}
+                    label="Раздел хранения"
+                    value={material?.storageSection}
+                    onChange={(event) =>
+                      set('storageSection', event.target.value)
+                    }
+                  />
                   <BaseItemNumber
                     readOnly={true}
                     label="Масштаб"
@@ -683,7 +689,12 @@ export default function DetailAdmin({ id }: { id: string }) {
                       set('accessConditions', event.target.value)
                     }
                   />
-                  {/* TODO: Местонахождение территории */}
+                  <BaseItem
+                    readOnly={true}
+                    label="Местоположение"
+                    value={material.location}
+                    onChange={(event) => {}}
+                  />
                   <BaseLabel label="Базовый тип*">
                     <Select
                       disabled
@@ -861,88 +872,90 @@ export default function DetailAdmin({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Контур пространственных данных</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
-              <Map
-                type="spatial-data"
-                geometry={material?.geometryString ?? ''}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="col-span-2 space-y-4">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Контур пространственных данных</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="aspect-video overflow-hidden rounded-lg bg-gray-200">
+                <Map
+                  type="spatial-data"
+                  geometry={material?.geometryString ?? ''}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>
-              Изображения предпросмотра пространственных данных
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {material?.repoFiles?.repoAttachedFiles &&
-            material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {material?.repoFiles.repoAttachedFiles.map((file) => (
-                  <img
-                    src={`${returnRepoSrc(file?.code, 'jpg')}`}
-                    alt="Preview 1"
-                    className="h-auto w-[400px] rounded-lg"
-                    width={400}
-                  />
-                ))}
-              </div>
-            ) : material?.attachedFilesList &&
-              material?.attachedFilesList?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {material?.attachedFilesList.map((file) => (
-                  <img
-                    src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
-                    alt="Preview 1"
-                    className="h-auto w-[400px] rounded-lg"
-                    width={400}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-gray-500">
-                Нет доступных файлов
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle>
+                Изображения предпросмотра пространственных данных
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {material?.repoFiles?.repoAttachedFiles &&
+              material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.repoFiles.repoAttachedFiles.map((file) => (
+                    <img
+                      src={`${returnRepoSrc(file?.code, 'jpg')}`}
+                      alt="Preview 1"
+                      className="h-auto w-[400px] rounded-lg"
+                      width={400}
+                    />
+                  ))}
+                </div>
+              ) : material?.attachedFilesList &&
+                material?.attachedFilesList?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.attachedFilesList.map((file) => (
+                    <img
+                      src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
+                      alt="Preview 1"
+                      className="h-auto w-[400px] rounded-lg"
+                      width={400}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Файлы пространственных данных</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {material?.repoFiles?.repoStorageFiles &&
-            material?.repoFiles.repoStorageFiles.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {material?.repoFiles.repoStorageFiles.map((file) =>
-                  renderDoc(file)
-                )}
-              </div>
-            ) : material?.storageFilesList &&
-              material?.storageFilesList?.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {material?.storageFilesList.map((file: any) =>
-                  renderDocFromPath(file.path, file.description)
-                )}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-gray-500">
-                Нет доступных файлов
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <div className="flex justify-between pb-[30px] lg:col-span-3">
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle>Файлы пространственных данных</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {material?.repoFiles?.repoStorageFiles &&
+              material?.repoFiles.repoStorageFiles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.repoFiles.repoStorageFiles.map((file) =>
+                    renderDoc(file)
+                  )}
+                </div>
+              ) : material?.storageFilesList &&
+                material?.storageFilesList?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.storageFilesList.map((file: any) =>
+                    renderDocFromPath(file.path, file.description)
+                  )}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <div className="flex justify-between pb-[30px] lg:col-span-4">
           <Button variant="outline" onClick={() => history.back()}>
             <ArrowLeft className="mr-2" size={16} />
             Назад к каталогу

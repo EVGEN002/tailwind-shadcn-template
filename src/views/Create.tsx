@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Map from 'MapProvider/MapComponentContainer';
+import { v4 as uuidv4 } from 'uuid';
 
 import '@/assets/global.css';
 
@@ -24,10 +25,11 @@ import {
   getDictionary,
   getDictionaryFundsettings,
   getSpatialData,
-  postSpatialData
+  postSpatialData,
+  uploadRepoFile
 } from '@/api';
 
-import { Material } from '@/types/spatialData';
+import { Material, RepoFile } from '@/types/spatialData';
 import BaseItem from '@/components/BaseItem';
 import TextareaItem from '@/components/TextareaItem';
 import BaseItemNumber from '@/components/BaseItemNumber';
@@ -167,9 +169,39 @@ export default function Create() {
   const [selectedTowns, setSelectedTowns] = useState<TownLocation[]>([]);
 
   const [showAddFileModal, setShowAddFileModal] = useState(false);
+  const [showAddImageModal, setShowAddImageModal] = useState(false);
 
   const [fileList, setFileList] = useState<FileList | null>(null);
   const [imageList, setImageList] = useState<FileList | null>(null);
+
+  const [fileTitle, setFileTitle] = useState<string | null>(null);
+
+  const sendFile = async () => {
+    const files = fileList;
+
+    if (!files) return;
+
+    const formData = new FormData();
+
+    // Append each file to FormData
+    for (let i = 0; i < files.length; i++) {
+      formData.append('tip', 'file');
+      formData.append('obj', 'material');
+      formData.append('obj_code', uuidv4());
+      formData.append('obj_field', 'storagedfile');
+      formData.append('title', fileTitle ?? 'Безымянный файл');
+      formData.append('files', files[i]);
+    }
+
+    try {
+      const repoResponse = await uploadRepoFile(formData);
+
+      toast.success('Файл успешно загружен');
+      setShowAddFileModal(false);
+    } catch {
+      toast.error('Ошибка при загрузке файла');
+    }
+  };
 
   const handleSetBaseDictionary = <T,>(
     promiseResult: PromiseSettledResult<T>,
@@ -518,10 +550,47 @@ export default function Create() {
     })();
   }, [selectedDistricts, selectedNaslegs, selectedTowns]);
 
+  const returnRepoSrc = (code: string | null, ext: string | null) => {
+    const MODE = process.env.MODE;
+    let src: string;
+
+    if (MODE === 'production') {
+      src = `/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'local') {
+      src = `/sakhagis/apimap/repo/${code}${ext}`;
+    } else if (MODE === 'development') {
+      src = `https://yakit.pro/sakhagis/apimap/repo/${code}${ext}`;
+    } else {
+      src = '';
+    }
+
+    return src;
+  };
+
+  const renderDoc = (file: RepoFile) => {
+    const MODE = process.env.MODE;
+    let link: string;
+
+    if (MODE === 'production') {
+      link = `/apimap/repo/${file.code}`;
+    } else if (MODE === 'local') {
+      link = `/sakhagis/apimap/repo/${file.code}`;
+    } else if (MODE === 'development') {
+      link = `https://yakit.pro/sakhagis/apimap/repo/${file.code}`;
+    } else {
+      link = '';
+    }
+
+    const name = file?.name ?? '';
+    const ext = file?.ext ?? '';
+
+    return <a href={link}>{name + ext}</a>;
+  };
+
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-3">
-        <Card className="flex flex-col lg:col-span-1">
+      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-4">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               <MapPinPlus className="mr-2" size={20} />
@@ -529,7 +598,7 @@ export default function Create() {
             </CardTitle>
           </CardHeader>
           <CardContent className="relative flex-1 p-0">
-            <div className="absolute left-0 top-0 h-full w-full space-y-4 overflow-y-auto p-6 pt-0">
+            <div className="left-0 top-0 h-full w-full space-y-4 p-6 pt-0">
               {isLoaded && (
                 <>
                   <BaseItem
@@ -1018,21 +1087,84 @@ export default function Create() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
-              <span>Контур пространственных данных</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="z-0 aspect-video overflow-hidden rounded-lg bg-gray-200">
-              <Map
-                type="spatial-data"
-                geometry={material?.geometryString ?? ''}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-4 lg:col-span-2">
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>
+                <span>Контур пространственных данных</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="z-0 aspect-video overflow-hidden rounded-lg bg-gray-200">
+                <Map
+                  type="spatial-data"
+                  geometry={material?.geometryString ?? ''}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>
+                Изображения предпросмотра пространственных данных
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddImageModal(true)}
+              >
+                Загрузить изображения
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {material?.repoFiles?.repoAttachedFiles &&
+              material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.repoFiles.repoAttachedFiles.map((file) => (
+                    <img
+                      src={`${returnRepoSrc(file?.code, 'jpg')}`}
+                      alt="Preview 1"
+                      className="h-auto w-[400px] rounded-lg"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Файлы пространственных данных</CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddFileModal(true)}
+              >
+                Загрузить файлы
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {material?.repoFiles?.repoStorageFiles &&
+              material?.repoFiles.repoStorageFiles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {material?.repoFiles.repoStorageFiles.map((file) =>
+                    renderDoc(file)
+                  )}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  Нет доступных файлов
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {false && (
           <Card className="lg:col-span-3">
             <CardHeader>
@@ -1068,30 +1200,28 @@ export default function Create() {
         )}
       </div>
 
-      <Card className="mb-[30px] mt-6">
-        <CardContent className="flex justify-between pt-6">
-          <a href={backHref()}>
-            <Button variant="outline">
-              <ArrowLeft className="mr-2" size={16} onClick={backHref} />
-              Назад к каталогу
-            </Button>
-          </a>
-          <Button
-            onClick={addData}
-            className={cn({ 'opacity-50': validation })}
-            disabled={!isLoaded || sending}
-          >
-            {sending ? (
-              <>
-                Создание{' '}
-                <LoaderCircle className="ml-2 animate-spin duration-500" />
-              </>
-            ) : (
-              'Создать материал'
-            )}
+      <div className="col-span-4 flex justify-between pb-[30px]">
+        <a href={backHref()}>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2" size={16} />
+            Назад
           </Button>
-        </CardContent>
-      </Card>
+        </a>
+        <Button
+          onClick={addData}
+          className={cn({ 'opacity-50': validation })}
+          disabled={!isLoaded || sending}
+        >
+          {sending ? (
+            <>
+              Создание{' '}
+              <LoaderCircle className="ml-2 animate-spin duration-500" />
+            </>
+          ) : (
+            'Создать материал'
+          )}
+        </Button>
+      </div>
 
       <Dialog open={showSectionModal} onOpenChange={setShowSectionModal}>
         <DialogContent>
@@ -1369,6 +1499,92 @@ export default function Create() {
           <div className="mt-3 flex justify-between">
             <Button variant="outline">Отмена</Button>
             <Button onClick={() => {}}>Подтвердить</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddFileModal} onOpenChange={setShowAddFileModal}>
+        <DialogContent defaultClose={false} className="sm:max-w-[700px]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="max-w-[80%]">
+              Загрузить Пространственные файлы
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button size="icon" variant="ghost">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Название файла</Label>
+            <Input
+              className="w-full"
+              type="text"
+              placeholder="Введите наименование файла"
+              value={fileTitle ?? ''}
+              onChange={(event) => setFileTitle(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Input
+              className="w-full"
+              type="file"
+              onChange={(event) => setFileList(event.target.files)}
+            />
+          </div>
+          <div className="mt-3 flex justify-between">
+            <Button variant="outline">Отмена</Button>
+            <Button
+              onClick={() => {
+                sendFile();
+              }}
+              disabled={!fileTitle}
+            >
+              Подтвердить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddImageModal} onOpenChange={setShowAddImageModal}>
+        <DialogContent defaultClose={false} className="sm:max-w-[700px]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="max-w-[80%]">
+              Загрузить Пространственные файлы
+            </DialogTitle>
+            <DialogClose asChild>
+              <Button size="icon" variant="ghost">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <div>
+            <Label>Название файла</Label>
+            <Input
+              className="w-full"
+              type="text"
+              placeholder="Введите наименование файла"
+              value={fileTitle ?? ''}
+              onChange={(event) => setFileTitle(event.target.value)}
+            />
+          </div>
+          <div>
+            <Input
+              className="w-full"
+              type="file"
+              onChange={(event) => setFileList(event.target.files)}
+            />
+          </div>
+          <div className="mt-3 flex justify-between">
+            <Button variant="outline">Отмена</Button>
+            <Button
+              onClick={() => {
+                sendFile();
+              }}
+              disabled={!fileTitle}
+            >
+              Подтвердить
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

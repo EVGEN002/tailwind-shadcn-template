@@ -13,10 +13,11 @@ interface BaseItemProps {
 
 const BaseItem = ({ label, value, onChange, className, readOnly }: BaseItemProps) => {
   return (
-    <div className='space-y-1.5'>
-      <Label className="font-medium">{label}</Label>
+    // <div className='space-y-1.5'>
+    <div className='grid grid-cols-3 gap-2'>
+      <Label className="font-medium col-span-1">{label}</Label>
       <Input
-        className={cn(className)}
+        className={cn('col-span-2', className)}
         readOnly={readOnly}
         type="text"
         value={value ?? ''}
