@@ -366,8 +366,8 @@ export default function Detail({ id }: DetailProps) {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="mb-[30px] grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-4">
-        <Card className="lg:col-span-2">
+      <div className="mb-[30px] grid h-full gap-6 py-[30px] grid-cols-4">
+        <Card className="col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               <MapPin className="mr-2" size={20} />
@@ -488,8 +488,8 @@ export default function Detail({ id }: DetailProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-4 lg:col-span-2">
-          <Card className="lg:col-span-2">
+        <div className="space-y-4 col-span-2">
+          <Card className="col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Контур пространственных данных</span>
@@ -503,7 +503,7 @@ export default function Detail({ id }: DetailProps) {
               </div>
             </CardContent>
           </Card>
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader>
               <CardTitle>
                 Изображения предпросмотра пространственных данных
@@ -512,7 +512,7 @@ export default function Detail({ id }: DetailProps) {
             <CardContent>
               {data?.repoFiles?.repoAttachedFiles &&
               data?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {data?.repoFiles.repoAttachedFiles.map((file) => (
                     <img
                       src={`${returnRepoSrc(file?.code, 'jpg')}`}
@@ -524,7 +524,7 @@ export default function Detail({ id }: DetailProps) {
                 </div>
               ) : data?.attachedFilesList &&
                 data?.attachedFilesList?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {data?.attachedFilesList.map((file) => (
                     <img
                       src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
@@ -541,14 +541,14 @@ export default function Detail({ id }: DetailProps) {
               )}
             </CardContent>
           </Card>
-          <Card className="lg:col-span-3">
+          <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Файлы пространственных данных</CardTitle>
             </CardHeader>
             <CardContent>
               {data?.repoFiles?.repoStorageFiles &&
               data?.repoFiles.repoStorageFiles.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {data?.repoFiles.repoStorageFiles.map((file) =>
                     renderDoc(file)
                   )}
@@ -562,7 +562,7 @@ export default function Detail({ id }: DetailProps) {
           </Card>
         </div>
 
-        <div className="col-span-4 flex justify-between">
+        <div className="col-span-4 flex justify-between pb-[30px]">
           <a onClick={() => history.back()}>
             <Button variant="outline">
               <ArrowLeft className="mr-2" size={16} />

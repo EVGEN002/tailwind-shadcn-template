@@ -105,7 +105,11 @@ const defaultMaterial: Material = {
   coordSystemId: null,
   locationGuids: '',
   editor: '',
-  serializedAdditionalFields: ''
+  serializedAdditionalFields: '',
+  repoFiles: {
+    repoAttachedFiles: [],
+    repoStorageFiles: []
+  }
 };
 
 interface SectionDictionary {
@@ -171,10 +175,13 @@ export default function Create() {
   const [showAddFileModal, setShowAddFileModal] = useState(false);
   const [showAddImageModal, setShowAddImageModal] = useState(false);
 
+  const [fileTitle, setFileTitle] = useState<string | null>(null);
   const [fileList, setFileList] = useState<FileList | null>(null);
+
+  const [imageTitle, setImageTitle] = useState<string | null>(null);
   const [imageList, setImageList] = useState<FileList | null>(null);
 
-  const [fileTitle, setFileTitle] = useState<string | null>(null);
+  const [id, setId] = useState<string>('');
 
   const sendFile = async () => {
     const files = fileList;
@@ -187,19 +194,87 @@ export default function Create() {
     for (let i = 0; i < files.length; i++) {
       formData.append('tip', 'file');
       formData.append('obj', 'material');
-      formData.append('obj_code', uuidv4());
+      formData.append('obj_code', id);
       formData.append('obj_field', 'storagedfile');
       formData.append('title', fileTitle ?? 'Безымянный файл');
       formData.append('files', files[i]);
     }
 
     try {
-      const repoResponse = await uploadRepoFile(formData);
+      const repoResponse: RepoFile[] = await uploadRepoFile(formData);
+
+      setMaterial((prev) => {
+        return {
+          ...prev,
+          repoFiles: prev.repoFiles
+            ? {
+                ...prev.repoFiles,
+                repoStorageFiles: [
+                  ...prev.repoFiles.repoAttachedFiles,
+                  ...repoResponse
+                ]
+              }
+            : prev.repoFiles
+        };
+      });
 
       toast.success('Файл успешно загружен');
       setShowAddFileModal(false);
     } catch {
       toast.error('Ошибка при загрузке файла');
+    }
+  };
+
+  useEffect(() => {
+    if (!id) {
+      const uuid = uuidv4();
+      setId(uuid);
+      set('guid', uuid);
+    }
+  }, [id]);
+
+  const sendImage = async () => {
+    const files = imageList;
+
+    if (!files) return;
+
+    const formData = new FormData();
+
+    // Append each file to FormData
+    for (let i = 0; i < files.length; i++) {
+      formData.append('tip', 'file');
+      formData.append('obj', 'material');
+      formData.append('obj_code', id);
+      formData.append('obj_field', 'attachedfile');
+      formData.append('title', imageTitle ?? 'Безымянный файл');
+      formData.append('files', files[i]);
+    }
+
+    try {
+      const repoResponse: RepoFile[] = await uploadRepoFile(formData);
+
+      // setMaterial((prev) => ({ ...prev, repoFiles: { ...prev.repoFiles,  } }))
+      setMaterial((prev) => {
+        debugger;
+
+        return {
+          ...prev,
+          repoFiles: prev.repoFiles
+            ? {
+                ...prev.repoFiles,
+                repoAttachedFiles: [
+                  ...prev.repoFiles.repoAttachedFiles,
+                  ...repoResponse
+                ]
+              }
+            : prev.repoFiles
+        };
+      });
+
+      toast.success('Изображение успешно загружено');
+      setShowAddFileModal(false);
+    } catch {
+      toast.error('Ошибка при загрузке изображения');
     }
   };
 
@@ -559,7 +634,7 @@ export default function Create() {
     } else if (MODE === 'local') {
       src = `/sakhagis/apimap/repo/${code}${ext}`;
     } else if (MODE === 'development') {
-      src = `https://yakit.pro/sakhagis/apimap/repo/${code}${ext}`;
+      src = `https://yakit.pro/sakhagis/apimap/repo/${code}.${ext}`;
     } else {
       src = '';
     }
@@ -589,8 +664,8 @@ export default function Create() {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-4">
-        <Card className="flex flex-col lg:col-span-2">
+      <div className="grid h-full gap-6 py-[30px] grid-cols-4">
+        <Card className="flex flex-col col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               <MapPinPlus className="mr-2" size={20} />
@@ -1087,8 +1162,8 @@ export default function Create() {
           </CardContent>
         </Card>
 
-        <div className="space-y-4 lg:col-span-2">
-          <Card className="lg:col-span-2">
+        <div className="space-y-4 col-span-2">
+          <Card className="col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 <span>Контур пространственных данных</span>
@@ -1099,12 +1174,18 @@ export default function Create() {
                 <Map
                   type="spatial-data"
                   geometry={material?.geometryString ?? ''}
+                  onSetGeometry={(coordinates) => {
+                    if (coordinates) {
+                      set('lng', coordinates[0]);
+                      set('lat', coordinates[1]);
+                    }
+                  }}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 Изображения предпросмотра пространственных данных
@@ -1118,9 +1199,10 @@ export default function Create() {
               </Button>
             </CardHeader>
             <CardContent>
+              {/* <pre>{JSON.stringify(material?.repoFiles, null, 2)}</pre> */}
               {material?.repoFiles?.repoAttachedFiles &&
               material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.repoFiles.repoAttachedFiles.map((file) => (
                     <img
                       src={`${returnRepoSrc(file?.code, 'jpg')}`}
@@ -1137,7 +1219,7 @@ export default function Create() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Файлы пространственных данных</CardTitle>
               <Button
@@ -1151,7 +1233,7 @@ export default function Create() {
             <CardContent>
               {material?.repoFiles?.repoStorageFiles &&
               material?.repoFiles.repoStorageFiles.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.repoFiles.repoStorageFiles.map((file) =>
                     renderDoc(file)
                   )}
@@ -1166,14 +1248,14 @@ export default function Create() {
         </div>
 
         {false && (
-          <Card className="lg:col-span-3">
+          <Card className="col-span-3">
             <CardHeader>
               <CardTitle>
                 Изображения предпросмотра пространственных данных
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                 <img
                   src="/placeholder.svg?height=150&width=150"
                   alt="Preview 1"
@@ -1454,7 +1536,7 @@ export default function Create() {
               </CardContent>
             </Card>
           </div>
-          <div className="mt-3 flex justify-between">
+          <div className="mt-3 flex justify-between pb-[30px]">
             <Button
               variant="outline"
               onClick={() => {
@@ -1550,7 +1632,7 @@ export default function Create() {
         <DialogContent defaultClose={false} className="sm:max-w-[700px]">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="max-w-[80%]">
-              Загрузить Пространственные файлы
+              Загрузить изображение предпросмотра пространственных данных
             </DialogTitle>
             <DialogClose asChild>
               <Button size="icon" variant="ghost">
@@ -1564,24 +1646,24 @@ export default function Create() {
               className="w-full"
               type="text"
               placeholder="Введите наименование файла"
-              value={fileTitle ?? ''}
-              onChange={(event) => setFileTitle(event.target.value)}
+              value={imageTitle ?? ''}
+              onChange={(event) => setImageTitle(event.target.value)}
             />
           </div>
           <div>
             <Input
               className="w-full"
               type="file"
-              onChange={(event) => setFileList(event.target.files)}
+              onChange={(event) => setImageList(event.target.files)}
             />
           </div>
           <div className="mt-3 flex justify-between">
             <Button variant="outline">Отмена</Button>
             <Button
               onClick={() => {
-                sendFile();
+                sendImage();
               }}
-              disabled={!fileTitle}
+              disabled={!imageList}
             >
               Подтвердить
             </Button>

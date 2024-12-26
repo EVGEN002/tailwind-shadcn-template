@@ -1,6 +1,6 @@
 import request from '@/api/axios';
 import { UploadResponse } from '@/types/general';
-import { Material } from '@/types/spatialData';
+import { Material, RepoFile } from '@/types/spatialData';
 
 export const getDictionary = (dictionary: string) =>
   request.get<any>(`apimap/api/Dictionary/${dictionary}`);
@@ -26,7 +26,7 @@ export const postToCart = (data: { materialId: string; quantity: number }) =>
 export const getCurrentUser = () => request.get(`apimap/api/me`);
 
 export const uploadRepoFile = (data: FormData) =>
-  request.post<UploadResponse[], FormData>(`apiorders/Repo/upload`, data, {
+  request.post<RepoFile[], FormData>(`apiorders/Repo/upload`, data, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }

@@ -64,6 +64,7 @@ export interface Material {
   status: number | null;
   displayForm: number | null;
   areaBySheetFrameSquareMeter: number | null;
+  areaByCreateScaleSquareDecimeters?: number | null;
   baseUnitOfAccount: number | null;
   numberOfUnits: number | null;
   imageType: string | null;
@@ -84,8 +85,14 @@ export interface Material {
   locationGuids: string | null;
   editor: string | null;
   serializedAdditionalFields: string | null;
+  views?: number | null;
+  downloads?: number | null;
   attachedFilesList?: AttachedFile[];
   storageFilesList?: StoragedFile[];
+  cost?: number | null;
+  createDate? : Date | null;
+  modifiedDate? : Date | null;
+  guid?: string | null;
   repoFiles?: {
     repoAttachedFiles: RepoFile[],
     repoStorageFiles: RepoFile[]

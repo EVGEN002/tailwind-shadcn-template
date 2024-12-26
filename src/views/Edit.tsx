@@ -154,7 +154,10 @@ export default function Edit({ id }: { id: string }) {
   const [showAddFileModal, setShowAddFileModal] = useState(false);
   const [showAddImageModal, setShowAddImageModal] = useState(false);
 
+  const [fileTitle, setFileTitle] = useState<string | null>(null);
   const [fileList, setFileList] = useState<FileList | null>(null);
+
+  const [imageTitle, setImageTitle] = useState<string | null>(null);
   const [imageList, setImageList] = useState<FileList | null>(null);
 
   const [sectionDictionary, setSectionDictionary] =
@@ -193,11 +196,14 @@ export default function Edit({ id }: { id: string }) {
   useEffect(() => {
     setMaterial((prev) => ({
       ...prev,
-      storageSection: `${sectionData.shelfValue}${sectionData.sectionValue ? `,${sectionData.sectionValue}` : ''}${sectionData.rackValue ? `,${sectionData.rackValue}` : ''}${sectionData.cellValue ? `,${sectionData.cellValue}` : ''}`
+      storageSection: [
+        `Стеллаж: ${sectionData.rackValue}`,
+        `Секция: ${sectionData.sectionValue}`,
+        `Полка: ${sectionData.shelfValue}`,
+        `Ячейка: ${sectionData.cellValue}`
+      ].join(', ')
     }));
   }, [sectionData]);
-
-  const [fileTitle, setFileTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -477,7 +483,7 @@ export default function Edit({ id }: { id: string }) {
     } else if (MODE === 'local') {
       src = `/sakhagis/apimap/repo/${code}${ext}`;
     } else if (MODE === 'development') {
-      src = `https://yakit.pro/sakhagis/apimap/repo/${code}${ext}`;
+      src = `https://yakit.pro/sakhagis/apimap/repo/${code}.${ext}`;
     } else {
       src = '';
     }
@@ -545,24 +551,24 @@ export default function Edit({ id }: { id: string }) {
       formData.append('obj', 'material');
       formData.append('obj_code', id);
       formData.append('obj_field', 'attachedfile');
-      formData.append('title', fileTitle ?? 'Безымянный файл');
+      formData.append('title', imageTitle ?? 'Безымянный файл');
       formData.append('files', files[i]);
     }
 
     try {
       const repoResponse = await uploadRepoFile(formData);
 
-      toast.success('Файл успешно загружен');
+      toast.success('Изображение успешно загружено');
       setShowAddFileModal(false);
     } catch {
-      toast.error('Ошибка при загрузке файла');
+      toast.error('Ошибка при загрузке изображения');
     }
   };
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-[30px] lg:grid-cols-4">
-        <Card className="flex flex-col lg:col-span-2">
+      <div className="grid h-full grid-cols-4 gap-6 py-[30px]">
+        <Card className="col-span-2 flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Pencil className="mr-2" size={20} />
@@ -980,8 +986,8 @@ export default function Edit({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <div className="space-y-4 lg:col-span-2">
-          <Card className="lg:col-span-2">
+        <div className="col-span-2 space-y-4">
+          <Card className="col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Контур пространственных данных</span>
@@ -991,13 +997,19 @@ export default function Edit({ id }: { id: string }) {
               <div className="h-[500px] overflow-hidden rounded-lg bg-gray-200">
                 <Map
                   type="spatial-data"
-                  geometry={data?.geometryString ?? ''}
+                  geometry={material?.geometryString ?? ''}
+                  onSetGeometry={(coordinates) => {
+                    if (coordinates) {
+                      set('lng', coordinates[0]);
+                      set('lat', coordinates[1]);
+                    }
+                  }}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 Изображения предпросмотра пространственных данных
@@ -1007,14 +1019,14 @@ export default function Edit({ id }: { id: string }) {
                 variant="outline"
                 onClick={() => setShowAddImageModal(true)}
               >
-                Загрузить изображения
+                Загрузить изображение
               </Button>
             </CardHeader>
             <CardContent>
-              {data?.repoFiles?.repoAttachedFiles &&
-              data?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {data?.repoFiles.repoAttachedFiles.map((file) => (
+              {material?.repoFiles?.repoAttachedFiles &&
+              material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
+                <div className="grid grid-cols-4 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                  {material?.repoFiles.repoAttachedFiles.map((file) => (
                     <img
                       src={`${returnRepoSrc(file?.code, 'jpg')}`}
                       alt="Preview 1"
@@ -1030,7 +1042,7 @@ export default function Edit({ id }: { id: string }) {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Файлы пространственных данных</CardTitle>
               <Button
@@ -1044,7 +1056,7 @@ export default function Edit({ id }: { id: string }) {
             <CardContent>
               {data?.repoFiles?.repoStorageFiles &&
               data?.repoFiles.repoStorageFiles.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-4 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {data?.repoFiles.repoStorageFiles.map((file) =>
                     renderDoc(file)
                   )}
@@ -1248,48 +1260,6 @@ export default function Edit({ id }: { id: string }) {
           <div>
             <Label>Стеллаж:</Label>
             <Select
-              value={sectionData.shelfValue}
-              onValueChange={(value) =>
-                setSectionData((prev) => ({
-                  ...prev,
-                  shelfValue: value
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите стеллаж" />
-              </SelectTrigger>
-              <SelectContent>
-                {sectionDictionary?.shelfValues.map((item) => (
-                  <SelectItem value={item}>{item}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Секция:</Label>
-            <Select
-              value={sectionData.sectionValue}
-              onValueChange={(value) =>
-                setSectionData((prev) => ({
-                  ...prev,
-                  sectionValue: value
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите стеллаж" />
-              </SelectTrigger>
-              <SelectContent>
-                {sectionDictionary?.sectionValues.map((item) => (
-                  <SelectItem value={item}>{item}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Полка:</Label>
-            <Select
               value={sectionData.rackValue}
               onValueChange={(value) =>
                 setSectionData((prev) => ({
@@ -1309,6 +1279,48 @@ export default function Edit({ id }: { id: string }) {
             </Select>
           </div>
           <div>
+            <Label>Секция:</Label>
+            <Select
+              value={sectionData.sectionValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  sectionValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите секцию" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.sectionValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Полка:</Label>
+            <Select
+              value={sectionData.shelfValue}
+              onValueChange={(value) =>
+                setSectionData((prev) => ({
+                  ...prev,
+                  shelfValue: value
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите полку" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionDictionary?.shelfValues.map((item) => (
+                  <SelectItem value={item}>{item}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label>Ячейка:</Label>
             <Select
               value={sectionData.cellValue}
@@ -1320,7 +1332,7 @@ export default function Edit({ id }: { id: string }) {
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Выберите стеллаж" />
+                <SelectValue placeholder="Выберите ячейку" />
               </SelectTrigger>
               <SelectContent>
                 {sectionDictionary?.cellValues.map((item) => (
@@ -1367,7 +1379,7 @@ export default function Edit({ id }: { id: string }) {
               onClick={() => {
                 sendFile();
               }}
-              disabled={!fileTitle}
+              disabled={!fileTitle || !fileList}
             >
               Подтвердить
             </Button>
@@ -1379,7 +1391,7 @@ export default function Edit({ id }: { id: string }) {
         <DialogContent defaultClose={false} className="sm:max-w-[700px]">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="max-w-[80%]">
-              Загрузить Пространственные файлы
+              Загрузить изображение предпросмотра пространственных данных
             </DialogTitle>
             <DialogClose asChild>
               <Button size="icon" variant="ghost">
@@ -1393,24 +1405,24 @@ export default function Edit({ id }: { id: string }) {
               className="w-full"
               type="text"
               placeholder="Введите наименование файла"
-              value={fileTitle ?? ''}
-              onChange={(event) => setFileTitle(event.target.value)}
+              value={imageTitle ?? ''}
+              onChange={(event) => setImageTitle(event.target.value)}
             />
           </div>
           <div>
             <Input
               className="w-full"
               type="file"
-              onChange={(event) => setFileList(event.target.files)}
+              onChange={(event) => setImageList(event.target.files)}
             />
           </div>
           <div className="mt-3 flex justify-between">
             <Button variant="outline">Отмена</Button>
             <Button
               onClick={() => {
-                sendFile();
+                sendImage();
               }}
-              disabled={!fileTitle}
+              disabled={!imageTitle || !imageList}
             >
               Подтвердить
             </Button>

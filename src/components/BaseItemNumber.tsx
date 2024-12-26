@@ -26,6 +26,8 @@ const BaseItemNumber = ({
         className={cn('col-span-2', className)}
         readOnly={readOnly}
         type="number"
+        step={1}
+        min={1}
         value={value ?? undefined}
         onChange={onChange}
       ></Input>

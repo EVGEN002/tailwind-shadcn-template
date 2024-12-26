@@ -451,8 +451,8 @@ export default function DetailAdmin({ id }: { id: string }) {
 
   return (
     <div className="h-full overflow-auto px-[30px]">
-      <div className="grid h-full grid-cols-1 gap-6 py-6 lg:grid-cols-4">
-        <Card className="flex flex-col lg:col-span-2">
+      <div className="grid h-full gap-6 py-6 grid-cols-4">
+        <Card className="flex flex-col col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center">
               {isLoaded ? material?.name : <Skeleton className="h-6 w-full" />}
@@ -462,27 +462,14 @@ export default function DetailAdmin({ id }: { id: string }) {
             <div className="left-0 top-0 h-full w-full space-y-4 p-6 pt-0">
               {isLoaded && (
                 <>
-                  <BaseItem
+                  <TextareaItem
                     readOnly={true}
-                    label="Наименование*"
-                    value={material?.name}
+                    label="Наименование"
+                    placeholder=''
+                    value={material?.name ?? undefined}
                     onChange={(event) => set('name', event.target.value)}
                   />
-                  <BaseItem
-                    readOnly={true}
-                    label="Главный географический объект"
-                    value={material?.mainGeoObjectName}
-                    onChange={(event) =>
-                      set('mainGeoObjectName', event.target.value)
-                    }
-                  />
-                  <BaseItem
-                    readOnly={true}
-                    label="Короткое наименование*"
-                    value={material?.shortName}
-                    onChange={(event) => set('shortName', event.target.value)}
-                  />
-                  <BaseLabel label="Вид пространнственных данных*">
+                  <BaseLabel label="Вид пространнственных данных">
                     <Select
                       value={
                         baseDictionary?.materialtypes?.find(
@@ -509,13 +496,17 @@ export default function DetailAdmin({ id }: { id: string }) {
                   </BaseLabel>
                   <BaseItem
                     readOnly={true}
-                    label="Инвентарный номер*"
-                    value={material?.inventarNumber}
-                    onChange={(event) =>
-                      set('inventarNumber', event.target.value)
-                    }
+                    label="Местонахождение территории"
+                    value={material.location}
+                    onChange={(event) => {}}
                   />
-                  <BaseLabel label="Система координат*">
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Год создания*"
+                    value={material?.yearCreate}
+                    onChange={(event) => set('yearCreate', event.target.value)}
+                  />
+                  <BaseLabel label="Система координат">
                     <Select
                       disabled
                       value={
@@ -540,12 +531,272 @@ export default function DetailAdmin({ id }: { id: string }) {
                       </SelectContent>
                     </Select>
                   </BaseLabel>
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Масштаб"
+                    value={material?.scale}
+                    onChange={(event) => set('scale', event.target.value)}
+                  />
+                  {/* Форма хранения данных */}
+                  <BaseLabel label="Секретность">
+                    <Select
+                      disabled
+                      value={
+                        baseDictionary?.secretStatusTypes?.find(
+                          (item) => item?.id == material?.secretStatus
+                        )?.id
+                      }
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          secretStatus: Number(value) ?? null
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите секретность" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseDictionary.secretStatusTypes?.map((item: any) => (
+                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
+                  <BaseLabel label="Организация изготовитель">
+                    <Select
+                      disabled
+                      value={
+                        baseDictionary?.materialcreator?.find(
+                          (item) => item?.id == material?.materialCreatorId
+                        )?.id
+                      }
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          materialCreatorId: Number(value)
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите организацию" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseDictionary.materialcreator?.map((item: any) => (
+                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
+                  <BaseItem
+                    readOnly={true}
+                    label="Правообладатель"
+                    value={material?.mapOwner}
+                    onChange={(event) => set('projection', event.target.value)}
+                  />
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Год соответствия местности*"
+                    value={material?.yearConformity}
+                    onChange={(event) =>
+                      set('yearConformity', event.target.value)
+                    }
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Условия доступа"
+                    value={material?.accessConditions}
+                    onChange={(event) =>
+                      set('accessConditions', event.target.value)
+                    }
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Главный географический объект"
+                    value={material?.mainGeoObjectName}
+                    onChange={(event) =>
+                      set('mainGeoObjectName', event.target.value)
+                    }
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Короткое наименование"
+                    value={material?.shortName}
+                    onChange={(event) => set('shortName', event.target.value)}
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Штрихкод"
+                    value={String(material?.barcode)}
+                    onChange={(event) => {}}
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Инвентарный номер"
+                    value={material?.inventarNumber}
+                    onChange={(event) => {}}
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Идентификатор"
+                    value={id}
+                    onChange={(event) => {}}
+                  />
                   <BaseItem
                     readOnly={true}
                     label="Проекция"
                     value={material?.projection}
                     onChange={(event) => set('projection', event.target.value)}
                   />
+                  <BaseItem
+                    readOnly={true}
+                    label="Раздел хранения"
+                    value={material?.storageSection}
+                    onChange={(event) => {}}
+                  />
+                  <BaseLabel label="Базовый тип*">
+                    <Select
+                      disabled
+                      value={
+                        baseDictionary?.basetype?.find(
+                          (item) => item?.id == material?.baseType
+                        )?.id
+                      }
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          baseType: Number(value)
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите базовый тип" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseDictionary.basetype?.map((item: any) => (
+                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Просмотров"
+                    value={material?.views ?? undefined}
+                    onChange={(event) => {}}
+                  />
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Загрузок"
+                    value={material?.downloads ?? undefined}
+                    onChange={(event) => {}}
+                  />
+                  <BaseLabel label="Форма предоставления данных*">
+                    <Select
+                      disabled
+                      value={
+                        baseDictionary?.displayforms?.find(
+                          (item) => item?.id == material?.displayForm
+                        )?.id
+                      }
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          displayForm: Number(value)
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseDictionary.displayforms?.map((item: any) => (
+                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Площадь по рамке листа, кв.м."
+                    value={material?.areaBySheetFrameSquareMeter}
+                    onChange={(event) =>
+                      set('areaBySheetFrameSquareMeter', event.target.value)
+                    }
+                  />
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Площадь в масштабе создания, кв. дм."
+                    value={material?.areaByCreateScaleSquareDecimeters}
+                    onChange={(event) => {}}
+                  />
+                  <BaseLabel label="Базовая расчетная единица*">
+                    <Select
+                      disabled
+                      value={
+                        baseDictionary?.materialbaseunits?.find(
+                          (item) => item?.id == material?.baseUnitOfAccount
+                        )?.id
+                      }
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          baseUnitOfAccount: Number(value)
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите базовую расчетную единицу" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseDictionary.materialbaseunits?.map((item: any) => (
+                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Количество листов карты"
+                    value={material?.numberOfSheets}
+                    onChange={(event) =>
+                      set('numberOfSheets', event.target.value)
+                    }
+                  />
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Количество кадров"
+                    value={material?.numberOfUnits}
+                    onChange={(event) =>
+                      set('numberOfUnits', event.target.value)
+                    }
+                  />
+                  <BaseItemNumber
+                    readOnly={true}
+                    label="Стоимость пространнственных данных. руб"
+                    value={material?.cost}
+                    onChange={(event) => {}}
+                  />
+                  <BaseLabel label="Статус">
+                    <Select
+                      disabled
+                      value={String(material.status)}
+                      onValueChange={(value) =>
+                        setMaterial((prev) => ({
+                          ...prev,
+                          status: Number(value)
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите статус" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Черновик</SelectItem>
+                        <SelectItem value="1">Опубликовано</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </BaseLabel>
                   <TextareaItem
                     readOnly={true}
                     label="Конур простр. данных в формате GeoJSON"
@@ -597,198 +848,6 @@ export default function DetailAdmin({ id }: { id: string }) {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </BaseLabel>
-                  <BaseLabel label="Организация изготовитель*">
-                    <Select
-                      disabled
-                      value={
-                        baseDictionary?.materialcreator?.find(
-                          (item) => item?.id == material?.materialCreatorId
-                        )?.id
-                      }
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          materialCreatorId: Number(value)
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите организацию" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseDictionary.materialcreator?.map((item: any) => (
-                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
-                  <BaseItem
-                    readOnly={true}
-                    label="Правообладатель"
-                    value={material?.mapOwner}
-                    onChange={(event) => set('projection', event.target.value)}
-                  />
-                  <BaseItem
-                    readOnly={true}
-                    label="Раздел хранения"
-                    value={material?.storageSection}
-                    onChange={(event) =>
-                      set('storageSection', event.target.value)
-                    }
-                  />
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Масштаб"
-                    value={material?.scale}
-                    onChange={(event) => set('scale', event.target.value)}
-                  />
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Год создания*"
-                    value={material?.yearCreate}
-                    onChange={(event) => set('yearCreate', event.target.value)}
-                  />
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Год соответствия местности*"
-                    value={material?.yearConformity}
-                    onChange={(event) =>
-                      set('yearConformity', event.target.value)
-                    }
-                  />
-                  <BaseLabel label="Секретность*">
-                    <Select
-                      disabled
-                      value={
-                        baseDictionary?.secretStatusTypes?.find(
-                          (item) => item?.id == material?.secretStatus
-                        )?.id
-                      }
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          secretStatus: Number(value) ?? null
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите секретность" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseDictionary.secretStatusTypes?.map((item: any) => (
-                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
-                  <BaseItem
-                    readOnly={true}
-                    label="Условия доступа"
-                    value={material?.accessConditions}
-                    onChange={(event) =>
-                      set('accessConditions', event.target.value)
-                    }
-                  />
-                  <BaseItem
-                    readOnly={true}
-                    label="Местоположение"
-                    value={material.location}
-                    onChange={(event) => {}}
-                  />
-                  <BaseLabel label="Базовый тип*">
-                    <Select
-                      disabled
-                      value={
-                        baseDictionary?.basetype?.find(
-                          (item) => item?.id == material?.baseType
-                        )?.id
-                      }
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          baseType: Number(value)
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите базовый тип" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseDictionary.basetype?.map((item: any) => (
-                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
-                  <BaseLabel label="Статус*">
-                    <Select
-                      disabled
-                      value={String(material.status)}
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          status: Number(value)
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите статус" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Черновик</SelectItem>
-                        <SelectItem value="1">Опубликовано</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
-                  <BaseLabel label="Форма предоставления данных*">
-                    <Select
-                      disabled
-                      value={
-                        baseDictionary?.displayforms?.find(
-                          (item) => item?.id == material?.displayForm
-                        )?.id
-                      }
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          displayForm: Number(value)
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите вид пространнственных данных" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseDictionary.displayforms?.map((item: any) => (
-                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Площадь по рамке листа, кв.м."
-                    value={material?.areaBySheetFrameSquareMeter}
-                    onChange={(event) =>
-                      set('areaBySheetFrameSquareMeter', event.target.value)
-                    }
-                  />
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Количество листов карты"
-                    value={material?.numberOfSheets}
-                    onChange={(event) =>
-                      set('numberOfSheets', event.target.value)
-                    }
-                  />
-                  <BaseItemNumber
-                    readOnly={true}
-                    label="Количество кадров"
-                    value={material?.numberOfUnits}
-                    onChange={(event) =>
-                      set('numberOfUnits', event.target.value)
-                    }
-                  />
                   <BaseItem
                     readOnly={true}
                     label="WMS-слой"
@@ -831,31 +890,24 @@ export default function DetailAdmin({ id }: { id: string }) {
                     value={material?.lng}
                     onChange={(event) => set('lng', event.target.value)}
                   />
-                  <BaseLabel label="Базовая расчетная единица*">
-                    <Select
-                      disabled
-                      value={
-                        baseDictionary?.materialbaseunits?.find(
-                          (item) => item?.id == material?.baseUnitOfAccount
-                        )?.id
-                      }
-                      onValueChange={(value) =>
-                        setMaterial((prev) => ({
-                          ...prev,
-                          baseUnitOfAccount: Number(value)
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите базовую расчетную единицу" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseDictionary.materialbaseunits?.map((item: any) => (
-                          <SelectItem value={item?.id}>{item?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </BaseLabel>
+                  <BaseItem
+                    readOnly={true}
+                    label="Дата создания"
+                    value={material?.createDate ? new Date(material?.createDate).toLocaleDateString('ru-RU') : ''}
+                    onChange={(event) => {}}
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Дата редактирования"
+                    value={material?.modifiedDate ? new Date(material?.modifiedDate).toLocaleDateString('ru-RU') : ''}
+                    onChange={(event) => {}}
+                  />
+                  <BaseItem
+                    readOnly={true}
+                    label="Редактор"
+                    value={material?.editor}
+                    onChange={(event) => {}}
+                  />
                 </>
               )}
               {!isLoaded && (
@@ -873,7 +925,7 @@ export default function DetailAdmin({ id }: { id: string }) {
         </Card>
 
         <div className="col-span-2 space-y-4">
-          <Card className="lg:col-span-2">
+          <Card className="col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Контур пространственных данных</span>
@@ -889,7 +941,7 @@ export default function DetailAdmin({ id }: { id: string }) {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-3">
+          <Card className="col-span-3">
             <CardHeader>
               <CardTitle>
                 Изображения предпросмотра пространственных данных
@@ -898,7 +950,7 @@ export default function DetailAdmin({ id }: { id: string }) {
             <CardContent>
               {material?.repoFiles?.repoAttachedFiles &&
               material?.repoFiles?.repoAttachedFiles?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.repoFiles.repoAttachedFiles.map((file) => (
                     <img
                       src={`${returnRepoSrc(file?.code, 'jpg')}`}
@@ -910,7 +962,7 @@ export default function DetailAdmin({ id }: { id: string }) {
                 </div>
               ) : material?.attachedFilesList &&
                 material?.attachedFilesList?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.attachedFilesList.map((file) => (
                     <img
                       src={`${returnFileSrcFromPath(file?.path, 'jpg')}`}
@@ -928,21 +980,21 @@ export default function DetailAdmin({ id }: { id: string }) {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-3">
+          <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Файлы пространственных данных</CardTitle>
             </CardHeader>
             <CardContent>
               {material?.repoFiles?.repoStorageFiles &&
               material?.repoFiles.repoStorageFiles.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.repoFiles.repoStorageFiles.map((file) =>
                     renderDoc(file)
                   )}
                 </div>
               ) : material?.storageFilesList &&
                 material?.storageFilesList?.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 grid-cols-4">
                   {material?.storageFilesList.map((file: any) =>
                     renderDocFromPath(file.path, file.description)
                   )}
@@ -955,7 +1007,7 @@ export default function DetailAdmin({ id }: { id: string }) {
             </CardContent>
           </Card>
         </div>
-        <div className="flex justify-between pb-[30px] lg:col-span-4">
+        <div className="flex justify-between pb-[30px] col-span-4">
           <Button variant="outline" onClick={() => history.back()}>
             <ArrowLeft className="mr-2" size={16} />
             Назад к каталогу

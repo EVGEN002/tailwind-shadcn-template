@@ -6,6 +6,7 @@ interface MapComponentContainerProps {
   materialId?: string; // id нужного материала из списка пространственных материалов
   type?: "default" | "spatial" | "create" | "edit" | "view" | "create-poi" | "view-poi" | "edit-poi" | "spatial-data"; // где используется карта
   onFindMaterials?: (data: any) => void; // используется в SpartialSearch
+  onSetGeometry?: (coordinates: any) => void;
   onDrawed?: (data: any) => void; // через функцию onDrawed отправляем FeatureCollection
   geometry?: any; // передаем FeatureCollection
   poiCoordinates?: any;
